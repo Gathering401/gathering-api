@@ -1,0 +1,44 @@
+{
+  "name": "gathering-api",
+  "version": "1.0.0",
+  "description": "API to source all data for the Gathering web app",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && node dist/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gathering401/gathering-api.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/Gathering401/gathering-api/issues"
+  },
+  "homepage": "https://github.com/Gathering401/gathering-api#readme",
+  "dependencies": {
+    "@types/node": "^25.4.0",
+    "ajv": "^8.18.0",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "sequelize": "^6.37.8",
+    "sqlite3": "^5.0.2",
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@types/ajv": "^0.0.5",
+    "@types/express": "^5.0.6",
+    "@types/jest": "^30.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/sequelize": "^4.28.20",
+    "@types/sqlite3": "^3.1.11",
+    "jest": "^30.3.0"
+  }
+}
