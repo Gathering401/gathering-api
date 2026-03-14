@@ -1,0 +1,30 @@
+info:
+  name: Update User
+  type: http
+  seq: 3
+
+http:
+  method: PUT
+  url: http://localhost:3000/user/update
+  headers:
+    - name: Authorization
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRzdHJ1dmUiLCJ1c2VySWQiOjIsImlhdCI6MTc3MzQ5OTA0NSwiZXhwIjoxNzczNTg1NDQ1fQ.M1K0RR6Ox4QDJRge31QUVDlTbU7pxNut-_ECbM75BJ4
+  body:
+    type: json
+    data: |-
+      {
+        "id": 2,
+        "username": "honey346",
+        "firstName": "Tanya",
+        "lastName": "Struve",
+        "email": "tstruve@example.com",
+        "password": "P@ssw0rd",
+        "birthdate": "1999-09-14"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -57,17 +57,29 @@ export const login = async (req: Request, res: Response) => {
 }
 
 export const update = async (req: Request, res: Response) => {
-    const user = req.body as User;
+    try {
+        const user = req.body as User;
 
-    const validator = getUserValidator();
+        try {
+            const validator = getUserValidator();
 
-    const validationResponse = await validator.validate(user);
+            await validator.validate(user);
+        } catch (error) {
+            return res.status(400).json({ error: 'Invalid input', details: error });
+        }
 
-    if (Object.values(validationResponse).length) {
-        return res.status(400).json({ error: 'Invalid input', details: validationResponse });
+        user.password = encryptPassword(user.password);
+
+        const response = await putUser(user);
+
+        const accessToken = generateAccessToken(user.username, response.id!);
+
+        res.status(201).json({
+            success: true,
+            user,
+            token: accessToken
+        });
+    } catch (err: any) {
+        res.status(500).json({ success: false, error: err.message });
     }
-
-    user.password = encryptPassword(user.password);
-
-    const response = await putUser(user);
 }
