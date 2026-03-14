@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import {TokenUser, User} from '../common/models/User';
+import {TokenUser, User} from './User';
 import {Request, Response} from 'express';
 import {deleteUser, getUser, getUserById, postUser, putUser} from "./repository";
 import {getUserValidator} from "./validation";
@@ -20,7 +20,7 @@ export const decodeAccessToken = (accessToken: string): TokenUser => {
 
 export const register = async (req: Request, res: Response) => {
     try {
-        const user = req.body as any as User;
+        const user = req.body as User;
 
         try {
             const validator = getUserValidator();

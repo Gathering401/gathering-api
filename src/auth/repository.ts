@@ -1,7 +1,7 @@
 import knex from 'knex';
 
 const connection = require('../knexfile')[process.env.NODE_ENV || 'development'];
-import {mapUserToDb, User} from "../common/models/User";
+import {mapUserToDb, User} from "./User";
 import _ from "lodash";
 
 const database = knex(connection);

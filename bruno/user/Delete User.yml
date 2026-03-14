@@ -8,7 +8,7 @@ http:
   url: http://localhost:3000/user/delete?id=3
   headers:
     - name: Authorization
-      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImxzdHJ1dmUiLCJpYXQiOjE3NzM1MTI2MDEsImV4cCI6MTc3MzU5OTAwMX0.2c6xzr04DyWWAL3KvX3PB2guIPC6KCvEg_iRVJ2FJ90
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImxzdHJ1dmUiLCJ1c2VySWQiOjMsImlhdCI6MTc3MzUxNDA3MywiZXhwIjoxNzczNjAwNDczfQ.ZECFpSsfH4kEINB5GjozWCYLcQ_a26D0luOtttvE4vc
   params:
     - name: id
       value: "3"

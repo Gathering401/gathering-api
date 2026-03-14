@@ -1,0 +1,9 @@
+info:
+  name: group
+  type: folder
+  seq: 1
+
+request:
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpzdHJ1dmUiLCJ1c2VySWQiOjEsImlhdCI6MTc3MzUyMjQ5OSwiZXhwIjoxNzczNjA4ODk5fQ.ke3RSIGPI-mw9MeR-gj8L5OFs3uWfASC33OnGRWK3no

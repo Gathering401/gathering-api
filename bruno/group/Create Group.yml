@@ -1,0 +1,23 @@
+info:
+  name: Create Group
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:3000/group
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Gathering Test Group",
+        "description": "This is the test description, seeing that creating a group works",
+        "public": true
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

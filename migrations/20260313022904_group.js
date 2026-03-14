@@ -8,6 +8,7 @@ exports.up = function(knex) {
         table.string('name', 50);
         table.string('description', 200);
         table.boolean('public').defaultTo(true);
+        table.bigint('owner_id').references('user.id');
     });
 };
 

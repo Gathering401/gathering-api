@@ -5,8 +5,8 @@
 exports.up = function(knex) {
     return knex.schema.createTable('group_user', table => {
         table.increments();
-        table.integer('group_id').references('group.id');
-        table.integer('user_id').references('user.id');
+        table.bigint('group_id').references('group.id');
+        table.bigint('user_id').references('user.id');
         table.unique(['group_id', 'user_id'], {
             indexName: 'group_user_composite_index',
             useConstraint: true,
