@@ -8,7 +8,7 @@ http:
   url: http://localhost:3000/user/update
   headers:
     - name: Authorization
-      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRzdHJ1dmUiLCJ1c2VySWQiOjIsImlhdCI6MTc3MzQ5OTA0NSwiZXhwIjoxNzczNTg1NDQ1fQ.M1K0RR6Ox4QDJRge31QUVDlTbU7pxNut-_ECbM75BJ4
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpzdHJ1dmUiLCJ1c2VySWQiOjEsImlhdCI6MTc3MzUwMTA2NiwiZXhwIjoxNzczNTg3NDY2fQ.PGEBvTYosKrFTiXK5BKohzWfKw8l_y5Si2mzihPMGg0
   body:
     type: json
     data: |-

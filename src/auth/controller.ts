@@ -4,6 +4,7 @@ import {User} from '../common/models/User';
 import {Request, Response} from 'express';
 import {getUser, postUser, putUser} from "./repository";
 import {getUserValidator} from "./validation";
+import _ from "lodash";
 
 const encryptPassword = (password: string) =>
     crypto.createHash('sha256').update(password).digest('hex');
@@ -35,7 +36,7 @@ export const register = async (req: Request, res: Response) => {
 
         res.status(201).json({
             success: true,
-            user,
+            response,
             token: accessToken
         });
     } catch (err: any) {
@@ -53,7 +54,7 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const token = generateAccessToken(username, user.id!);
-    res.json({ success: true, user, token });
+    res.json({ success: true, username: user.username, token });
 }
 
 export const update = async (req: Request, res: Response) => {
@@ -76,7 +77,7 @@ export const update = async (req: Request, res: Response) => {
 
         res.status(201).json({
             success: true,
-            user,
+            response,
             token: accessToken
         });
     } catch (err: any) {
