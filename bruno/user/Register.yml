@@ -1,0 +1,26 @@
+info:
+  name: Register
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:3000/signup
+  body:
+    type: json
+    data: |-
+      {
+        "username": "tstruve",
+        "firstName": "Tanya",
+        "lastName": "Struve",
+        "email": "tstruve@example.com",
+        "password": "P@ssw0rd",
+        "birthdate": "1999-09-14"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

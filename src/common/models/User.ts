@@ -1,23 +1,27 @@
-import {DataTypes, Model, type Sequelize} from 'sequelize';
-
-const UserModel = {
-    id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
-    username: { type: DataTypes.STRING, allowNull: false, unique: true },
-    email: { type: DataTypes.STRING, allowNull: false, unique: true },
-    password: { type: DataTypes.STRING, allowNull: false },
-    firstName: { type: DataTypes.STRING, allowNull: false },
-    lastName: { type: DataTypes.STRING, allowNull: false },
-    age: { type: DataTypes.INTEGER }
-};
-
-export interface UserType {
-    id: number;
+export interface User {
+    id?: number;
     username: string;
     email: string;
     password: string;
     firstName: string;
     lastName: string;
-    age: number;
+    birthdate: string;
 }
 
-export const defineUser = (sequelize: Sequelize) => sequelize.define('user', UserModel);
+interface DbUser {
+    username: string;
+    email: string;
+    password: string;
+    first_name: string;
+    last_name: string;
+    birthdate: string;
+}
+
+export const mapUserToDb = (user: User): DbUser => ({
+    username: user.username,
+    first_name: user.firstName,
+    last_name: user.lastName,
+    email: user.email,
+    password: user.password,
+    birthdate: user.birthdate,
+});

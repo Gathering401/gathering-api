@@ -1,12 +1,9 @@
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import {sequelize} from '../common/database';
-import {defineUser, UserType} from '../common/models/User';
+import {User} from '../common/models/User';
 import {Request, Response} from 'express';
-import Ajv from 'ajv';
-
-const ajv = new Ajv();
-const User = defineUser(sequelize);
+import {getUser, postUser, putUser} from "./repository";
+import {getUserValidator} from "./validation";
 
 const encryptPassword = (password: string) =>
     crypto.createHash('sha256').update(password).digest('hex');
@@ -14,39 +11,27 @@ const encryptPassword = (password: string) =>
 const generateAccessToken = (username: string, userId: number) =>
     jwt.sign({ username, userId }, process.env.HASH_SECRET as string, { expiresIn: '24h' });
 
+export const decodeAccessToken = (accessToken: string) => {
+    return jwt.verify(accessToken, process.env.HASH_SECRET as string);
+}
+
 export const register = async (req: Request, res: Response) => {
     try {
-        const schema = {
-            type: 'object',
-            required: ['username', 'email', 'password', 'firstName', 'lastName', 'age'],
-            properties: {
-                username: { type: 'string', minLength: 3 },
-                email: { type: 'string', format: 'email' },
-                password: { type: 'string', minLength: 6 },
-                firstName: { type: 'string' },
-                lastName: { type: 'string' },
-                age: { type: 'number' },
-            }
-        };
-        const validate = ajv.compile(schema);
+        const user = req.body as any as User;
 
-        const { username, email, password, firstName, lastName, age } = req.body as any as UserType;
-        const encryptedPassword = encryptPassword(password);
+        try {
+            const validator = getUserValidator();
 
-        const user = await User.create({
-            username,
-            email,
-            password: encryptedPassword,
-            firstName,
-            lastName,
-            age
-        }) as any as UserType;
-
-        const accessToken = generateAccessToken(username, user.id);
-
-        if (!validate(req.body)) {
-            return res.status(400).json({ error: 'Invalid input', details: validate.errors });
+            await validator.validate(user);
+        } catch (error) {
+            return res.status(400).json({ error: 'Invalid input', details: error });
         }
+
+        user.password = encryptPassword(user.password);
+
+        const response = await postUser(user);
+
+        const accessToken = generateAccessToken(user.username, response.id!);
 
         res.status(201).json({
             success: true,
@@ -61,13 +46,28 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
     const { username, password } = req.body;
     const encrypted = encryptPassword(password);
-    const user = await User.findOne({ where: { username } });
+    const [user] = await getUser(username);
 
-    // @ts-ignore
-    if (!user || user.password !== encrypted)
-        return res.status(401).json({ error: 'Invalid credentials' });
+    if (!user || user.password !== encrypted) {
+        return res.status(401).json({error: 'Invalid credentials'});
+    }
 
-    // @ts-ignore
-    const token = generateAccessToken(username, user.id);
+    const token = generateAccessToken(username, user.id!);
     res.json({ success: true, user, token });
+}
+
+export const update = async (req: Request, res: Response) => {
+    const user = req.body as User;
+
+    const validator = getUserValidator();
+
+    const validationResponse = await validator.validate(user);
+
+    if (Object.values(validationResponse).length) {
+        return res.status(400).json({ error: 'Invalid input', details: validationResponse });
+    }
+
+    user.password = encryptPassword(user.password);
+
+    const response = await putUser(user);
 }

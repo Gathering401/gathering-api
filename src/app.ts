@@ -1,17 +1,19 @@
 import express, {NextFunction, Request, Response} from 'express';
+import cors from 'cors';
+require('dotenv').config();
 
-import {sequelize} from './common/database';
-import {defineUser} from './common/models/User';
 import authRoutes from './auth/routes';
-import userRoutes from './user/routes';
 
 const app = express();
 
-const User = defineUser(sequelize);
-
-sequelize.sync();
+const pg = require('knex')({
+    client: 'pg',
+    connection: process.env.PG_CONNECTION_STRING,
+    searchPath: ['knex', 'public'],
+});
 
 app.use(express.json());
+app.use(cors());
 
 app.get('/status', (_, res) => {
     res.json({
@@ -29,7 +31,6 @@ app.use((err: Error, _: Request, res: Response, __: NextFunction) => {
 });
 
 app.use('/', authRoutes);
-app.use('/user', userRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
