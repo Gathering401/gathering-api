@@ -1,8 +1,8 @@
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import {User} from '../common/models/User';
+import {TokenUser, User} from '../common/models/User';
 import {Request, Response} from 'express';
-import {getUser, postUser, putUser} from "./repository";
+import {deleteUser, getUser, getUserById, postUser, putUser} from "./repository";
 import {getUserValidator} from "./validation";
 import _ from "lodash";
 
@@ -12,8 +12,10 @@ const encryptPassword = (password: string) =>
 const generateAccessToken = (username: string, userId: number) =>
     jwt.sign({ username, userId }, process.env.HASH_SECRET as string, { expiresIn: '24h' });
 
-export const decodeAccessToken = (accessToken: string) => {
-    return jwt.verify(accessToken, process.env.HASH_SECRET as string);
+export const decodeAccessToken = (accessToken: string): TokenUser => {
+    return jwt.decode(accessToken, {
+        complete: true
+    }) as any as TokenUser;
 }
 
 export const register = async (req: Request, res: Response) => {
@@ -30,9 +32,9 @@ export const register = async (req: Request, res: Response) => {
 
         user.password = encryptPassword(user.password);
 
-        const response = await postUser(user);
+        const [response] = await postUser(user);
 
-        const accessToken = generateAccessToken(user.username, response.id!);
+        const accessToken = generateAccessToken(user.username, response!.id!);
 
         res.status(201).json({
             success: true,
@@ -79,6 +81,20 @@ export const update = async (req: Request, res: Response) => {
             success: true,
             response,
             token: accessToken
+        });
+    } catch (err: any) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+}
+
+export const removeUser = async (req: Request, res: Response) => {
+    try {
+        const id = Number(req.query.id);
+
+        await deleteUser(id);
+
+        res.status(204).json({
+            success: true
         });
     } catch (err: any) {
         res.status(500).json({ success: false, error: err.message });

@@ -1,0 +1,22 @@
+info:
+  name: Delete User
+  type: http
+  seq: 4
+
+http:
+  method: DELETE
+  url: http://localhost:3000/user/delete?id=3
+  headers:
+    - name: Authorization
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImxzdHJ1dmUiLCJpYXQiOjE3NzM1MTI2MDEsImV4cCI6MTc3MzU5OTAwMX0.2c6xzr04DyWWAL3KvX3PB2guIPC6KCvEg_iRVJ2FJ90
+  params:
+    - name: id
+      value: "3"
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

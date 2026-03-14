@@ -6,7 +6,7 @@ import _ from "lodash";
 
 const database = knex(connection);
 
-export const postUser = async (user: User): Promise<User> => {
+export const postUser = async (user: User): Promise<User[]> => {
     return database
         .table('user')
         .insert(mapUserToDb(user))
@@ -20,10 +20,23 @@ export const getUser = async (username: string): Promise<User[]> => {
         .returning(['id', 'first_name', 'last_name', 'email', 'birthdate', 'username']);
 }
 
+export const getUserById = async (id: number): Promise<User[]> => {
+    return database
+        .table('user')
+        .where('id', id)
+        .returning(['id', 'first_name', 'last_name', 'email', 'birthdate', 'username']);
+}
+
 export const putUser = async (user: User): Promise<User> => {
     return database
         .table('user')
         .update(_.omit(mapUserToDb(user), 'password'))
         .where('id', user.id)
         .returning(['id', 'first_name', 'last_name', 'email', 'username', 'birthdate']);
+}
+
+export const deleteUser = async (id: number): Promise<void> => {
+    await database
+        .table('user')
+        .delete().where('id', id);
 }

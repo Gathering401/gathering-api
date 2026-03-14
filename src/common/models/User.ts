@@ -17,6 +17,13 @@ interface DbUser {
     birthdate: string;
 }
 
+export interface TokenUser {
+    payload: {
+        username: string;
+        userId: number;
+    }
+}
+
 export const mapUserToDb = (user: User): DbUser => ({
     username: user.username,
     first_name: user.firstName,

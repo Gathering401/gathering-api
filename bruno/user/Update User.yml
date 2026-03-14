@@ -13,13 +13,13 @@ http:
     type: json
     data: |-
       {
-        "id": 2,
-        "username": "honey346",
-        "firstName": "Tanya",
+        "id": 1,
+        "username": "jnnystrv",
+        "firstName": "Jon",
         "lastName": "Struve",
-        "email": "tstruve@example.com",
+        "email": "jnnystrv3398@gmail.com",
         "password": "P@ssw0rd",
-        "birthdate": "1999-09-14"
+        "birthdate": "1998-03-03"
       }
   auth: inherit
 
