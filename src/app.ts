@@ -6,12 +6,13 @@ import authRoutes from './auth/routes';
 
 const app = express();
 
-const pg = require('knex')({
+require('knex')({
     client: 'pg',
     connection: process.env.PG_CONNECTION_STRING,
     searchPath: ['knex', 'public'],
 });
 
+app.set('trust proxy', 1);
 app.use(express.json());
 app.use(cors());
 
