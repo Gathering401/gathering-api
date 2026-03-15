@@ -11,6 +11,15 @@ export const postGroup = async (group: DbGroupPost) => {
         .insert(group)
         .returning(['id']);
 
+    await database
+        .table('group_user')
+        .insert({
+            group_id: response.id,
+            user_id: response.id,
+            role: 4,
+            invite_status: 2
+        });
+
     return database
         .table('group')
         .select('*')
