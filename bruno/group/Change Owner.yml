@@ -5,7 +5,11 @@ info:
 
 http:
   method: POST
-  url: http://localhost:3000/group/change-owner
+  url: http://localhost:3000/group/change-owner?id=1
+  params:
+    - name: id
+      value: "1"
+      type: query
   body:
     type: json
     data: |-

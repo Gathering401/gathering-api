@@ -70,3 +70,12 @@ export const updateOwner = async (groupUser: GroupUser, currentUserId: number) =
         .where('user_id', currentUserId)
         .andWhere('group_id', groupUser.groupId);
 }
+
+export const postUserInvite = async (userId: number, groupId: number) => {
+    await database
+        .table('group_user')
+        .insert({
+            user_id: userId,
+            group_id: groupId,
+        });
+}
