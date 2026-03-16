@@ -79,3 +79,13 @@ export const postUserInvite = async (userId: number, groupId: number) => {
             group_id: groupId,
         });
 }
+
+export const putUserInvite = async (groupId: number, userId: number, accepted: boolean) => {
+    await database
+        .table('group_user')
+        .update({
+            invite_status: accepted ? InviteStatus.accepted : InviteStatus.rejected_by_user
+        })
+        .where('group_id', groupId)
+        .andWhere('user_id', userId);
+}

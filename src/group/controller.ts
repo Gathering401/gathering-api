@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { getGroupValidator } from "./validation";
 import {Group, mapDbGroupToGroup, mapGroupToDbGroup} from "./Group";
-import {deleteGroup, postGroup, postUserInvite, putGroup, updateOwner} from "./repository";
+import {deleteGroup, postGroup, postUserInvite, putGroup, putUserInvite, updateOwner} from "./repository";
 import {User} from "../auth/User";
 import {getUserValidator} from "../auth/validation";
 import {putUser} from "../auth/repository";
@@ -88,6 +88,21 @@ export const inviteUser = async (req: Request, res: Response) => {
         const { userId, id } = req.query;
 
         await postUserInvite(Number(userId), Number(id));
+
+        res.status(204).json({
+            success: true,
+        });
+    } catch (err: any) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+}
+
+export const respondToInvite = async (req: Request, res: Response) => {
+    try {
+        const { id, accepted } = req.query;
+        const userId = res.locals.userId;
+
+        await putUserInvite(Number(id), userId, accepted === "true");
 
         res.status(204).json({
             success: true,
