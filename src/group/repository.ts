@@ -5,10 +5,11 @@ import {DbGroupPost, Group, mapGroupToDbGroup} from "./Group";
 import _ from "lodash";
 import {Role} from "../common/enums/role";
 import {InviteStatus} from "../common/enums/inviteStatus";
+import {GroupUser} from "../common/constants/GroupUser";
 
 const database = knex(connection);
 
-export const postGroup = async (group: DbGroupPost) => {
+export const postGroup = async (group: DbGroupPost, userId: number) => {
     const [response] = await database
         .table('group')
         .insert(group)
@@ -18,7 +19,7 @@ export const postGroup = async (group: DbGroupPost) => {
         .table('group_user')
         .insert({
             group_id: response.id,
-            user_id: response.id,
+            user_id: userId,
             role: Role.owner,
             invite_status: InviteStatus.accepted
         });
@@ -26,7 +27,6 @@ export const postGroup = async (group: DbGroupPost) => {
     return database
         .table('group')
         .select('*')
-        .leftJoin('user', 'group.owner_id', 'user.id')
         .where('group.id', response.id);
 }
 
@@ -49,4 +49,24 @@ export const deleteGroup = async (id: number) => {
     await database
         .table('group')
         .delete().where('id', id);
+}
+
+export const updateOwner = async (groupUser: GroupUser, currentUserId: number) => {
+    await database
+        .table('group_user')
+        .update({
+            role: Role.owner,
+            invite_status: InviteStatus.accepted
+        })
+        .where('user_id', groupUser.userId)
+        .andWhere('group_id', groupUser.groupId);
+
+    await database
+        .table('group_user')
+        .update({
+            role: Role.admin,
+            invite_status: InviteStatus.accepted
+        })
+        .where('user_id', currentUserId)
+        .andWhere('group_id', groupUser.groupId);
 }

@@ -12,7 +12,6 @@ export interface DbGroupPost {
     name: string;
     description: string;
     public: boolean;
-    owner_id: number | undefined;
 }
 
 export interface DbGroupGet extends DbGroupPost {
@@ -23,11 +22,10 @@ export interface DbGroupGet extends DbGroupPost {
     birthdate: string;
 }
 
-export const mapGroupToDbGroup = (group: Group, ownerId?: number): DbGroupPost => ({
+export const mapGroupToDbGroup = (group: Group): DbGroupPost => ({
     name: group.name,
     description: group.description,
-    public: group.public,
-    owner_id: ownerId
+    public: group.public
 });
 
 export const mapDbGroupToGroup = (group: DbGroupGet): Group => ({

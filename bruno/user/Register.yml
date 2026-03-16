@@ -8,16 +8,31 @@ http:
   url: http://localhost:3000/signup
   body:
     type: json
-    data: |-
-      {
-        "username": "jstruve",
-        "firstName": "Jon",
-        "lastName": "Struve",
-        "email": "jnnystrv3398@gmail.com",
-        "password": "P@ssw0rd",
-        "birthdate": "1998-03-03"
-      }
+    data: "{{jon}}"
   auth: inherit
+
+runtime:
+  variables:
+    - name: tanya
+      value: |-
+        {
+          "username": "honey346",
+          "firstName": "Tanya",
+          "lastName": "Struve",
+          "email": "tstruve@example.com",
+          "password": "P@ssw0rd",
+          "birthdate": "1999-09-14"
+        }
+    - name: jon
+      value: |-
+        {
+          "username": "jstruve",
+          "firstName": "Jon",
+          "lastName": "Struve",
+          "email": "jnnystrv3398@gmail.com",
+          "password": "P@ssw0rd",
+          "birthdate": "1998-03-03"
+        }
 
 settings:
   encodeUrl: true

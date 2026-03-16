@@ -1,0 +1,22 @@
+info:
+  name: Change Owner
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: http://localhost:3000/group/change-owner
+  body:
+    type: json
+    data: |-
+      {
+        "groupId": 1,
+        "userId": 2
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
