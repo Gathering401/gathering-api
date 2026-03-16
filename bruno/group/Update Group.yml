@@ -1,0 +1,24 @@
+info:
+  name: Update Group
+  type: http
+  seq: 2
+
+http:
+  method: PUT
+  url: http://localhost:3000/group
+  body:
+    type: json
+    data: |-
+      {
+        "id": 1,
+        "name": "Gathering Test Updated",
+        "description": "This is the test description, but updated",
+        "public": true
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

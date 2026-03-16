@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import {register, login, update, removeUser} from './controller';
-import {isCurrentUser} from "../common/middleware/isCurrentUser";
-import {isAuthenticated} from "../common/middleware/isAuthenticated";
+import {isCurrentUser, isAuthenticated} from "../common/middleware";
 
 const router = Router();
 

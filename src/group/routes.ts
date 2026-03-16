@@ -1,9 +1,13 @@
 import { Router } from 'express';
-import { createGroup } from './controller';
-import {isAuthenticated} from "../common/middleware/isAuthenticated";
+import {createGroup, removeGroup, updateGroup} from './controller';
+import {isAdmin, isAuthenticated, isInGroup, isOwner} from "../common/middleware";
 
 const router = Router();
 
-router.post('/', isAuthenticated, createGroup);
+router.use(isAuthenticated);
+
+router.post('/', createGroup);
+router.put('/', isInGroup, isAdmin, updateGroup);
+router.delete('/', isInGroup, isOwner, removeGroup);
 
 export default router;

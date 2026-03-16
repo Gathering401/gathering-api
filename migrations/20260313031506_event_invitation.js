@@ -5,8 +5,12 @@
 exports.up = function(knex) {
     return knex.schema.createTable('event_invitation', table => {
         table.increments();
-        table.bigint('event_id').references('event.id');
-        table.bigint('user_id').references('user.id');
+        table.bigint('event_id')
+            .references('event.id')
+            .onDelete('CASCADE');
+        table.bigint('user_id')
+            .references('user.id')
+            .onDelete('CASCADE');
         table.unique(['event_id', 'user_id'], {
             indexName: 'event_invitation_composite_index',
             useConstraint: true,
