@@ -1,0 +1,21 @@
+info:
+  name: Request to Join
+  type: http
+  seq: 7
+
+http:
+  method: POST
+  url: http://localhost:3000/group/request-to-join?id=1
+  params:
+    - name: id
+      value: "1"
+      type: query
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImhvbmV5MzQ2IiwidXNlcklkIjoyLCJpYXQiOjE3NzM3MTIyNzQsImV4cCI6MTc3Mzc5ODY3NH0.5bTpz2YSu1fXI_OpyljE1WoXyiSntQ_rFJ0gyRyCeOQ
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

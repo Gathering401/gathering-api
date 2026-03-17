@@ -1,7 +1,15 @@
 import { Request, Response } from 'express';
 import { getGroupValidator } from "./validation";
 import {Group, mapDbGroupToGroup, mapGroupToDbGroup} from "./Group";
-import {deleteGroup, postGroup, postUserInvite, putGroup, putUserInvite, updateOwner} from "./repository";
+import {
+    deleteGroup,
+    postGroup,
+    postUserInvite,
+    putGroup,
+    putUserInvite,
+    putUserRequest,
+    updateOwner
+} from "./repository";
 import {User} from "../auth/User";
 import {getUserValidator} from "../auth/validation";
 import {putUser} from "../auth/repository";
@@ -87,7 +95,7 @@ export const inviteUser = async (req: Request, res: Response) => {
     try {
         const { userId, id } = req.query;
 
-        await postUserInvite(Number(userId), Number(id));
+        await postUserInvite(Number(userId), Number(id), true);
 
         res.status(204).json({
             success: true,
@@ -103,6 +111,35 @@ export const respondToInvite = async (req: Request, res: Response) => {
         const userId = res.locals.userId;
 
         await putUserInvite(Number(id), userId, accepted === "true");
+
+        res.status(204).json({
+            success: true,
+        });
+    } catch (err: any) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+}
+
+export const requestToJoin = async (req: Request, res: Response) => {
+    try {
+        const groupId = Number(req.query.id);
+        const userId = Number(res.locals.userId);
+
+        await postUserInvite(userId, groupId, false);
+
+        res.status(204).json({
+            success: true,
+        });
+    } catch (err: any) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+}
+
+export const respondToRequest = async (req: Request, res: Response) => {
+    try {
+        const { id: groupId, userId, accepted } = req.query;
+
+        await putUserRequest(Number(groupId), Number(userId), accepted === "true");
 
         res.status(204).json({
             success: true,

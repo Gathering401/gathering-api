@@ -1,0 +1,25 @@
+info:
+  name: Respond to Request
+  type: http
+  seq: 8
+
+http:
+  method: PUT
+  url: http://localhost:3000/group/request-response?id=1&userId=2&accepted=true
+  params:
+    - name: id
+      value: "1"
+      type: query
+    - name: userId
+      value: "2"
+      type: query
+    - name: accepted
+      value: "true"
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

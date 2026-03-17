@@ -3,7 +3,7 @@ import {Role} from "../enums/role";
 
 export const isAdmin = async (_: Request, res: Response, next: NextFunction) => {
     try {
-        const role: number = res.locals.role;
+        const role = res.locals.role;
 
         if (![Role.admin, Role.owner].includes(role)) {
             return res.status(401).json({ success: false, message: "You do not have permission for that action in this group" });

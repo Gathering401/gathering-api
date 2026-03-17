@@ -21,7 +21,8 @@ export const postGroup = async (group: DbGroupPost, userId: number) => {
             group_id: response.id,
             user_id: userId,
             role: Role.owner,
-            invite_status: InviteStatus.accepted
+            invite_status: InviteStatus.accepted,
+            invited_by_group: true
         });
 
     return database
@@ -71,12 +72,13 @@ export const updateOwner = async (groupUser: GroupUser, currentUserId: number) =
         .andWhere('group_id', groupUser.groupId);
 }
 
-export const postUserInvite = async (userId: number, groupId: number) => {
+export const postUserInvite = async (userId: number, groupId: number, invitedByGroup: boolean) => {
     await database
         .table('group_user')
         .insert({
             user_id: userId,
             group_id: groupId,
+            invited_by_group: invitedByGroup
         });
 }
 
@@ -85,6 +87,16 @@ export const putUserInvite = async (groupId: number, userId: number, accepted: b
         .table('group_user')
         .update({
             invite_status: accepted ? InviteStatus.accepted : InviteStatus.rejected_by_user
+        })
+        .where('group_id', groupId)
+        .andWhere('user_id', userId);
+}
+
+export const putUserRequest = async (groupId: number, userId: number, accepted: boolean) => {
+    await database
+        .table('group_user')
+        .update({
+            invite_status: accepted ? InviteStatus.accepted : InviteStatus.rejected_by_group
         })
         .where('group_id', groupId)
         .andWhere('user_id', userId);
