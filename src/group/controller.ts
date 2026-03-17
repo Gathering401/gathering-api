@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { getGroupValidator } from "./validation";
 import {Group, mapDbGroupToGroup, mapGroupToDbGroup} from "./Group";
 import {
-    deleteGroup,
+    deleteGroup, deleteGroupUser,
     postGroup,
     postUserInvite,
     putGroup,
@@ -140,6 +140,21 @@ export const respondToRequest = async (req: Request, res: Response) => {
         const { id: groupId, userId, accepted } = req.query;
 
         await putUserRequest(Number(groupId), Number(userId), accepted === "true");
+
+        res.status(204).json({
+            success: true,
+        });
+    } catch (err: any) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+}
+
+export const removeMember = async (req: Request, res: Response) => {
+    try {
+        const groupId = res.locals.groupId;
+        const userId = Number(req.query.userId);
+
+        await deleteGroupUser(groupId, userId);
 
         res.status(204).json({
             success: true,

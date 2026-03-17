@@ -6,3 +6,4 @@ export * from './isCurrentUser';
 export * from './isPendingInvite';
 export * from './isNotPendingInvite';
 export * from './isPendingRequest';
+export * from './isLowerRole';

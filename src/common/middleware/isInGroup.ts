@@ -13,6 +13,7 @@ export const isInGroup = async (req: Request, res: Response, next: NextFunction)
         }
 
         res.locals.role = user.role;
+        res.locals.groupId = groupId;
 
         next();
     } catch(err: any) {

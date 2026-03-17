@@ -5,7 +5,14 @@ info:
 
 http:
   method: POST
-  url: http://localhost:3000/group/invite-user
+  url: http://localhost:3000/group/invite-user?userId=2&id=1
+  params:
+    - name: userId
+      value: "2"
+      type: query
+    - name: id
+      value: "1"
+      type: query
   auth: inherit
 
 settings:

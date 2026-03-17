@@ -5,17 +5,17 @@ info:
 
 http:
   method: PUT
-  url: http://localhost:3000/group/invite-response?id=1&accepted=true
+  url: http://localhost:3000/group/invite-response?id=1&accepted=false
   params:
     - name: id
       value: "1"
       type: query
     - name: accepted
-      value: "true"
+      value: "false"
       type: query
   auth:
     type: bearer
-    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImhvbmV5MzQ2IiwidXNlcklkIjoyLCJpYXQiOjE3NzM2OTcwNjQsImV4cCI6MTc3Mzc4MzQ2NH0.8Pd9r2lPvFD7QfHcfDcNsj-IiFC84GYFAd973VMNuRg
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImhvbmV5MzQ2IiwidXNlcklkIjoyLCJpYXQiOjE3NzM3MTQ2MzcsImV4cCI6MTc3MzgwMTAzN30.AGmhHxEh5xCXrzu8JifmXkg7cij86Es30U8X9J8kCaQ
 
 settings:
   encodeUrl: true

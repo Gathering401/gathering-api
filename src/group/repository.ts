@@ -101,3 +101,11 @@ export const putUserRequest = async (groupId: number, userId: number, accepted: 
         .where('group_id', groupId)
         .andWhere('user_id', userId);
 }
+
+export const deleteGroupUser = async (groupId: number, userId: number) => {
+    await database
+        .table('group_user')
+        .delete()
+        .where('group_id', groupId)
+        .andWhere('user_id', userId);
+}

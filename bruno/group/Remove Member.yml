@@ -1,20 +1,17 @@
 info:
-  name: Respond to Request
+  name: Remove Member
   type: http
-  seq: 8
+  seq: 9
 
 http:
-  method: PUT
-  url: http://localhost:3000/group/request-response?id=1&userId=2&accepted=false
+  method: DELETE
+  url: http://localhost:3000/group/remove-member?id=1&userId=2
   params:
     - name: id
       value: "1"
       type: query
     - name: userId
       value: "2"
-      type: query
-    - name: accepted
-      value: "false"
       type: query
   auth: inherit
 

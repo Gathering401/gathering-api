@@ -4,7 +4,8 @@ import {InviteStatus} from "../enums/inviteStatus";
 
 export const isPendingRequest = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { id: groupId, userId } = req.query;
+        const { userId } = req.query;
+        const groupId = res.locals.groupId;
 
         const [user] = await getGroupUserBy(Number(groupId), Number(userId));
         if (!user || user.id !== Number(userId)) {

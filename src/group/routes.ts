@@ -4,6 +4,7 @@ import {
     createGroup,
     inviteUser,
     removeGroup,
+    removeMember,
     requestToJoin,
     respondToInvite, respondToRequest,
     updateGroup
@@ -11,7 +12,7 @@ import {
 import {
     isAdmin,
     isAuthenticated,
-    isInGroup,
+    isInGroup, isLowerRole,
     isNotPendingInvite,
     isOwner,
     isPendingInvite,
@@ -30,5 +31,6 @@ router.post('/invite-user', isInGroup, isAdmin, isNotPendingInvite, inviteUser);
 router.put('/invite-response', isPendingInvite, respondToInvite);
 router.post('/request-to-join', isNotPendingInvite, requestToJoin);
 router.put('/request-response', isInGroup, isAdmin, isPendingRequest, respondToRequest);
+router.delete('/remove-member', isInGroup, isAdmin, isLowerRole, removeMember);
 
 export default router;
