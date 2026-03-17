@@ -2,7 +2,7 @@ import { Router } from 'express';
 import {
     changeOwner,
     createGroup,
-    inviteUser,
+    inviteUser, leaveGroup,
     removeGroup,
     removeMember,
     requestToJoin,
@@ -13,6 +13,7 @@ import {
     isAdmin,
     isAuthenticated,
     isInGroup, isLowerRole,
+    isNotOwner,
     isNotPendingInvite,
     isOwner,
     isPendingInvite,
@@ -32,5 +33,6 @@ router.put('/invite-response', isPendingInvite, respondToInvite);
 router.post('/request-to-join', isNotPendingInvite, requestToJoin);
 router.put('/request-response', isInGroup, isAdmin, isPendingRequest, respondToRequest);
 router.delete('/remove-member', isInGroup, isAdmin, isLowerRole, removeMember);
+router.delete('/leave', isInGroup, isNotOwner, leaveGroup);
 
 export default router;

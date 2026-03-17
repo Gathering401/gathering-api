@@ -5,9 +5,12 @@ import {InviteStatus} from "../enums/inviteStatus";
 export const isNotPendingInvite = async (req: Request, res: Response, next: NextFunction) => {
     try {
         let { userId } = req.query;
-        const groupId = res.locals.groupId;
-        if(!userId) {
+        let groupId = res.locals.groupId;
+        if(!userId || isNaN(Number(userId))) {
             userId = res.locals.userId;
+        }
+        if(!groupId || isNaN(Number(groupId))) {
+            groupId = req.query.id;
         }
 
         const [user] = await getGroupUserBy(Number(groupId), Number(userId));

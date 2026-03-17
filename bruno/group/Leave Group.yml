@@ -1,0 +1,21 @@
+info:
+  name: Leave Group
+  type: http
+  seq: 10
+
+http:
+  method: DELETE
+  url: http://localhost:3000/group/leave?id=1
+  params:
+    - name: id
+      value: "1"
+      type: query
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImhvbmV5MzQ2IiwidXNlcklkIjoyLCJpYXQiOjE3NzM3Njg1MzAsImV4cCI6MTc3Mzg1NDkzMH0.tQxWZ-sb2tMb6pBJUaYm3J-aIGyByzDbTkJrh0sEeZs
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

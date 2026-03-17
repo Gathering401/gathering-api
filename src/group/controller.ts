@@ -163,3 +163,17 @@ export const removeMember = async (req: Request, res: Response) => {
         res.status(500).json({ success: false, error: err.message });
     }
 }
+
+export const leaveGroup = async (_: Request, res: Response) => {
+    try {
+        const { groupId, userId } = res.locals;
+
+        await deleteGroupUser(groupId, userId);
+
+        res.status(204).json({
+            success: true,
+        });
+    } catch (err: any) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+}
