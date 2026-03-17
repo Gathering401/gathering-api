@@ -4,10 +4,12 @@ import {InviteStatus} from "../enums/inviteStatus";
 
 export const isNotPendingInvite = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const userId: number = res.locals.userId;
-        const groupId: number = Number(req.query.id);
+        let { id: groupId, userId } = req.query;
+        if(!userId) {
+            userId = res.locals.userId;
+        }
 
-        const [user] = await getGroupUserBy(groupId, userId);
+        const [user] = await getGroupUserBy(Number(groupId), Number(userId));
         if (user) {
             if(user.invite_status === InviteStatus.accepted) {
                 return res.status(401).json({success: false, message: "User already in group"});
