@@ -3,6 +3,7 @@ export * from './isAuthenticated';
 export * from './isCurrentUser';
 export * from './isInGroup';
 export * from './isLowerRole';
+export * from './isNotHigherRole';
 export * from './isNotOwner';
 export * from './isNotPendingInvite';
 export * from './isOwner';

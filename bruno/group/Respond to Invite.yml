@@ -5,13 +5,13 @@ info:
 
 http:
   method: PUT
-  url: http://localhost:3000/group/invite-response?id=1&accepted=false
+  url: http://localhost:3000/group/invite-response?id=1&accepted=true
   params:
     - name: id
       value: "1"
       type: query
     - name: accepted
-      value: "false"
+      value: "true"
       type: query
   auth:
     type: bearer

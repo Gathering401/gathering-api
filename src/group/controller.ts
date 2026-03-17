@@ -7,7 +7,7 @@ import {
     postUserInvite,
     putGroup,
     putUserInvite,
-    putUserRequest,
+    putUserRequest, putUserRole,
     updateOwner
 } from "./repository";
 import {User} from "../auth/User";
@@ -172,6 +172,28 @@ export const leaveGroup = async (_: Request, res: Response) => {
 
         res.status(204).json({
             success: true,
+        });
+    } catch (err: any) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+}
+
+export const changeRole = async (req: Request, res: Response) => {
+    try {
+        const { groupId } = res.locals;
+        const { role, userId } = req.query;
+
+        if(isNaN(Number(role))) {
+            res.status(400).json({
+                success: false,
+                message: "New role not provided"
+            })
+        }
+
+        await putUserRole(groupId, Number(userId), Number(role));
+
+        res.status(204).json({
+            success: true
         });
     } catch (err: any) {
         res.status(500).json({ success: false, error: err.message });

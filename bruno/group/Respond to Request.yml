@@ -5,7 +5,7 @@ info:
 
 http:
   method: PUT
-  url: http://localhost:3000/group/request-response?id=1&userId=2&accepted=false
+  url: http://localhost:3000/group/request-response?id=1&userId=2&accepted=true
   params:
     - name: id
       value: "1"
@@ -14,7 +14,7 @@ http:
       value: "2"
       type: query
     - name: accepted
-      value: "false"
+      value: "true"
       type: query
   auth: inherit
 

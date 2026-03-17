@@ -109,3 +109,13 @@ export const deleteGroupUser = async (groupId: number, userId: number) => {
         .where('group_id', groupId)
         .andWhere('user_id', userId);
 }
+
+export const putUserRole = async (groupId: number, userId: number, role: Role) => {
+    await database
+        .table('group_user')
+        .update({
+            role: role
+        })
+        .where('group_id', groupId)
+        .andWhere('user_id', userId);
+}
