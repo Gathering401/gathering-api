@@ -1,19 +1,42 @@
-import { Request, Response } from 'express';
-import { getGroupValidator } from "./validation";
+import {Request, Response} from 'express';
+import {getGroupValidator} from "./validation";
 import {Group, mapDbGroupToGroup, mapGroupToDbGroup} from "./Group";
 import {
-    deleteGroup, deleteGroupUser,
+    deleteGroup, deleteGroupUser, getGroupUserBy,
     postGroup,
     postUserInvite,
     putGroup,
     putUserInvite,
-    putUserRequest, putUserRole,
+    putUserRequest, putUserRole, selectGroup,
     updateOwner
 } from "./repository";
-import {User} from "../auth/User";
-import {getUserValidator} from "../auth/validation";
-import {putUser} from "../auth/repository";
 import {GroupUser} from "../common/constants/GroupUser";
+import {Role} from "../common/enums/role";
+
+export const getGroup = async (req: Request, res: Response) => {
+    try {
+        const groupId = Number(req.query.id);
+        const userId = Number(res.locals.userId);
+
+        const [user] = await getGroupUserBy(groupId, userId);
+
+        const response = await selectGroup(groupId, Boolean(user), [Role.admin, Role.owner].includes(user?.role));
+
+        if(!response) {
+            res.status(404).json({
+                success: false,
+                message: `Group ID ${groupId} not found`
+            })
+        }
+
+        res.status(200).json({
+            success: true,
+            response: mapDbGroupToGroup(response)
+        })
+    } catch (err: any) {
+        res.status(500).json({success: false, error: err.message});
+    }
+}
 
 export const createGroup = async (req: Request, res: Response) => {
     try {
@@ -25,17 +48,17 @@ export const createGroup = async (req: Request, res: Response) => {
 
             await validator.validate(group);
         } catch (error) {
-            return res.status(400).json({ error: 'Invalid input', details: error });
+            return res.status(400).json({error: 'Invalid input', details: error});
         }
 
         const [response] = await postGroup(mapGroupToDbGroup(group), userId);
 
         res.status(201).json({
             success: true,
-            response: mapDbGroupToGroup(response)
+            response
         });
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        res.status(500).json({success: false, error: err.message});
     }
 }
 
@@ -48,7 +71,7 @@ export const updateGroup = async (req: Request, res: Response) => {
 
             await validator.validate(group);
         } catch (error) {
-            return res.status(400).json({ error: 'Invalid input', details: error });
+            return res.status(400).json({error: 'Invalid input', details: error});
         }
 
         const response = await putGroup(group);
@@ -58,7 +81,7 @@ export const updateGroup = async (req: Request, res: Response) => {
             response
         });
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        res.status(500).json({success: false, error: err.message});
     }
 }
 
@@ -72,7 +95,7 @@ export const removeGroup = async (req: Request, res: Response) => {
             success: true
         });
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        res.status(500).json({success: false, error: err.message});
     }
 }
 
@@ -87,13 +110,13 @@ export const changeOwner = async (req: Request, res: Response) => {
             success: true,
         });
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        res.status(500).json({success: false, error: err.message});
     }
 }
 
 export const inviteUser = async (req: Request, res: Response) => {
     try {
-        const { userId, id } = req.query;
+        const {userId, id} = req.query;
 
         await postUserInvite(Number(userId), Number(id), true);
 
@@ -101,13 +124,13 @@ export const inviteUser = async (req: Request, res: Response) => {
             success: true,
         });
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        res.status(500).json({success: false, error: err.message});
     }
 }
 
 export const respondToInvite = async (req: Request, res: Response) => {
     try {
-        const { id, accepted } = req.query;
+        const {id, accepted} = req.query;
         const userId = res.locals.userId;
 
         await putUserInvite(Number(id), userId, accepted === "true");
@@ -116,7 +139,7 @@ export const respondToInvite = async (req: Request, res: Response) => {
             success: true,
         });
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        res.status(500).json({success: false, error: err.message});
     }
 }
 
@@ -131,13 +154,13 @@ export const requestToJoin = async (req: Request, res: Response) => {
             success: true,
         });
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        res.status(500).json({success: false, error: err.message});
     }
 }
 
 export const respondToRequest = async (req: Request, res: Response) => {
     try {
-        const { id: groupId, userId, accepted } = req.query;
+        const {id: groupId, userId, accepted} = req.query;
 
         await putUserRequest(Number(groupId), Number(userId), accepted === "true");
 
@@ -145,7 +168,7 @@ export const respondToRequest = async (req: Request, res: Response) => {
             success: true,
         });
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        res.status(500).json({success: false, error: err.message});
     }
 }
 
@@ -160,13 +183,13 @@ export const removeMember = async (req: Request, res: Response) => {
             success: true,
         });
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        res.status(500).json({success: false, error: err.message});
     }
 }
 
 export const leaveGroup = async (_: Request, res: Response) => {
     try {
-        const { groupId, userId } = res.locals;
+        const {groupId, userId} = res.locals;
 
         await deleteGroupUser(groupId, userId);
 
@@ -174,16 +197,16 @@ export const leaveGroup = async (_: Request, res: Response) => {
             success: true,
         });
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        res.status(500).json({success: false, error: err.message});
     }
 }
 
 export const changeRole = async (req: Request, res: Response) => {
     try {
-        const { groupId } = res.locals;
-        const { role, userId } = req.query;
+        const {groupId} = res.locals;
+        const {role, userId} = req.query;
 
-        if(isNaN(Number(role))) {
+        if (isNaN(Number(role))) {
             res.status(400).json({
                 success: false,
                 message: "New role not provided"
@@ -196,6 +219,6 @@ export const changeRole = async (req: Request, res: Response) => {
             success: true
         });
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        res.status(500).json({success: false, error: err.message});
     }
 }

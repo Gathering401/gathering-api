@@ -1,11 +1,12 @@
 import {User} from "../auth/User";
+import {InviteStatus} from "../common/enums/inviteStatus";
+import {Role} from "../common/enums/role";
 
 export interface Group {
     id?: number;
     name: string;
     description: string;
     public: boolean;
-    owner: Omit<User, 'password' | 'birthdate'>;
 }
 
 export interface DbGroupPost {
@@ -14,12 +15,37 @@ export interface DbGroupPost {
     public: boolean;
 }
 
-export interface DbGroupGet extends DbGroupPost {
+interface DbGroup extends Group {
+    name: string;
+    description: string;
+    public: boolean;
+    event_id: number;
+    event_name: string;
+    event_description: string;
+    date: string;
+    role: Role;
+    invite_status: InviteStatus;
+    user_id: number;
+    username: string;
     first_name: string;
     last_name: string;
-    email: string;
-    username: string;
-    birthdate: string;
+}
+
+interface GroupUser extends Omit<User, 'password' | 'email' | 'birthdate'> {
+    role: Role;
+    inviteStatus: InviteStatus;
+}
+
+interface Event { // NEEDS MOVED FROM HERE TO EVENT FILE WHEN MADE
+    id: number;
+    name: string;
+    description: string;
+    date: string;
+}
+
+interface GroupResponse extends Group {
+    members: GroupUser[];
+    events: Event[];
 }
 
 export const mapGroupToDbGroup = (group: Group): DbGroupPost => ({
@@ -28,14 +54,23 @@ export const mapGroupToDbGroup = (group: Group): DbGroupPost => ({
     public: group.public
 });
 
-export const mapDbGroupToGroup = (group: DbGroupGet): Group => ({
-    name: group.name,
-    description: group.description,
-    public: group.public,
-    owner: {
-        firstName: group.first_name,
-        lastName: group.last_name,
-        email: group.email,
-        username: group.username
-    }
+export const mapDbGroupToGroup = (group: DbGroup[]): GroupResponse => ({
+    id: group[0]!.id!,
+    name: group[0]!.name,
+    description: group[0]!.name,
+    public: group[0]!.public,
+    members: group.map(r => ({
+        id: r.user_id,
+        username: r.username,
+        firstName: r.first_name,
+        lastName: r.last_name,
+        role: r.role,
+        inviteStatus: r.invite_status
+    })),
+    events: group.map(r => ({
+        id: r.event_id,
+        name: r.event_name,
+        description: r.event_description,
+        date: r.date
+    })).filter(r => r.name)
 });

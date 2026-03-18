@@ -1,8 +1,8 @@
-import { Router } from 'express';
+import {Router} from 'express';
 import {
     changeOwner,
     changeRole,
-    createGroup,
+    createGroup, getGroup,
     inviteUser, leaveGroup,
     removeGroup,
     removeMember,
@@ -29,10 +29,11 @@ router.use(isAuthenticated);
 router.post('/', createGroup);
 router.put('/', isInGroup, isAdmin, updateGroup);
 router.delete('/', isInGroup, isOwner, removeGroup);
+router.get('/', getGroup);
 router.post('/change-owner', isInGroup, isOwner, changeOwner);
 router.post('/invite-user', isInGroup, isAdmin, isNotPendingInvite, inviteUser);
 router.put('/invite-response', isPendingInvite, respondToInvite);
-router.post('/request-to-join', isNotPendingInvite, requestToJoin);
+router.post('/request-to-join', isNotPendingInvite, requestToJoin); // NEED TO ACCOMMODATE PUBLIC VS NON-PUBLIC DIFFERENCES
 router.put('/request-response', isInGroup, isAdmin, isPendingRequest, respondToRequest);
 router.delete('/remove-member', isInGroup, isAdmin, isLowerRole, removeMember);
 router.delete('/leave', isInGroup, isNotOwner, leaveGroup);
