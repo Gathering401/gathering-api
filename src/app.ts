@@ -4,6 +4,7 @@ require('dotenv').config();
 
 import authRoutes from './auth/routes';
 import groupRoutes from './group/routes';
+import eventRoutes from './event/routes';
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use((err: Error, _: Request, res: Response, __: NextFunction) => {
 
 app.use('/', authRoutes);
 app.use('/group', groupRoutes);
+app.use('/event', eventRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

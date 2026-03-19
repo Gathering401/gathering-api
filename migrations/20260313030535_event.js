@@ -9,7 +9,9 @@ exports.up = function(knex) {
         table.string('description', 500);
         table.string('location', 100);
         table.timestamp('date');
-        table.decimal('cost', 2);
+        table.decimal('cost', 10, 2);
+        table.bigint('series_id');
+        table.integer('repetition');
         table.bigint('group_id').references('group.id');
         table.bigint('host_id').references('user.id');
     });

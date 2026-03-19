@@ -1,4 +1,5 @@
 import {User} from "../auth/User";
+import {PartialEvent} from "../event/Event";
 import {InviteStatus} from "../common/enums/inviteStatus";
 import {Role} from "../common/enums/role";
 
@@ -36,16 +37,9 @@ interface GroupUser extends Omit<User, 'password' | 'email' | 'birthdate'> {
     inviteStatus: InviteStatus;
 }
 
-interface Event { // NEEDS MOVED FROM HERE TO EVENT FILE WHEN MADE
-    id: number;
-    name: string;
-    description: string;
-    date: string;
-}
-
 interface GroupResponse extends Group {
     members: GroupUser[];
-    events: Event[];
+    events: PartialEvent[];
 }
 
 export const mapGroupToDbGroup = (group: Group): DbGroupPost => ({
