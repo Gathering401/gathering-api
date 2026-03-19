@@ -108,12 +108,18 @@ export const updateOwner = async (groupUser: GroupUser, currentUserId: number) =
 }
 
 export const postUserInvite = async (userId: number, groupId: number, invitedByGroup: boolean) => {
+    const [group] = await database
+        .table('group')
+        .select('public')
+        .where('group_id', groupId);
+
     await database
         .table('group_user')
         .insert({
             user_id: userId,
             group_id: groupId,
-            invited_by_group: invitedByGroup
+            invited_by_group: invitedByGroup,
+            invite_status: (group.public && !invitedByGroup) ? InviteStatus.accepted : InviteStatus.pending
         });
 }
 

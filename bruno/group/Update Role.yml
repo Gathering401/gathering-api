@@ -5,7 +5,17 @@ info:
 
 http:
   method: PUT
-  url: http://localhost:3000/group/change-role
+  url: http://localhost:3000/group/change-role?id=1&userId=2&role=3
+  params:
+    - name: id
+      value: "1"
+      type: query
+    - name: userId
+      value: "2"
+      type: query
+    - name: role
+      value: "3"
+      type: query
   auth: inherit
 
 settings:
