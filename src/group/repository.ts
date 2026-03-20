@@ -36,12 +36,7 @@ export const selectGroup = async (groupId: number, isInGroup: boolean, isAdmin: 
             });
     }
 
-    query
-        .leftJoin('user', 'group_user.user_id', 'user.id');
-
-    console.log('query', query.toQuery());
-
-    return query;
+    return query.leftJoin('user', 'group_user.user_id', 'user.id');
 }
 
 export const postGroup = async (group: DbGroupPost, userId: number) => {

@@ -1,6 +1,6 @@
 import {RsvpStatus} from "../common/enums/rsvpStatus";
-import {User} from "../auth/User";
 import {Repetition} from "../common/enums/repetition";
+import _ from "lodash";
 
 export interface EventPost {
     name: string;
@@ -17,13 +17,13 @@ export interface PartialEvent {
     id: number;
     name: string;
     description: string;
-    date: string;
+    date: Date;
 }
 
 export interface Event extends PartialEvent {
     groupId: number;
     location: string;
-    host: Omit<User, 'password' | 'birthdate'>;
+    host: Rsvp;
     rsvps: Rsvp[];
     cost: number;
     seriesId?: number;
@@ -48,6 +48,17 @@ export interface DbEventPost {
     series_id: number;
 }
 
+export interface DbEventGet extends Omit<DbEventPost, 'series_id'> {
+    id: number;
+    series_id: string;
+    repetition: Repetition.annually;
+    rsvp_status: RsvpStatus;
+    username: string;
+    first_name: string;
+    last_name: string;
+    user_id: string;
+}
+
 export const mapEventPostToDbEvent = (event: EventPost, seriesId: number): DbEventPost[] => event.dates.map((date: string) => ({
     name: event.name,
     description: event.description,
@@ -59,3 +70,26 @@ export const mapEventPostToDbEvent = (event: EventPost, seriesId: number): DbEve
     host_id: event.hostId,
     series_id: seriesId,
 }));
+
+export const mapDbEventToEvent = (events: DbEventGet[]): Event => {
+    const rsvps = _.uniqBy(events.map((invitation: DbEventGet): Rsvp => ({
+        userId: Number(invitation.user_id),
+        rsvp: invitation.rsvp_status,
+        username: invitation.username,
+        fullName: `${invitation.first_name} ${invitation.last_name}`
+    })), 'id');
+
+    const event = events[0]!;
+
+    return {
+        id: event.id,
+        groupId: event.group_id,
+        name: event.name,
+        description: event.description,
+        location: event.location,
+        host: rsvps.find(u => u.userId === Number(event.host_id))!,
+        rsvps,
+        cost: event.cost ?? 0,
+        date: new Date(event.date)
+    }
+}

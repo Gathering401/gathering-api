@@ -2,6 +2,7 @@ import {User} from "../auth/User";
 import {PartialEvent} from "../event/Event";
 import {InviteStatus} from "../common/enums/inviteStatus";
 import {Role} from "../common/enums/role";
+import _ from "lodash";
 
 export interface Group {
     id?: number;
@@ -53,18 +54,18 @@ export const mapDbGroupToGroup = (group: DbGroup[]): GroupResponse => ({
     name: group[0]!.name,
     description: group[0]!.name,
     public: group[0]!.public,
-    members: group.map(r => ({
+    members: _.uniqBy(group.map(r => ({
         id: r.user_id,
         username: r.username,
         firstName: r.first_name,
         lastName: r.last_name,
         role: r.role,
         inviteStatus: r.invite_status
-    })),
-    events: group.map(r => ({
+    })), 'id'),
+    events: _.uniqBy(group.map(r => ({
         id: r.event_id,
         name: r.event_name,
         description: r.event_description,
-        date: r.date
-    })).filter(r => r.name)
+        date: new Date(r.date)
+    })), 'id').filter(r => r.name)
 });
