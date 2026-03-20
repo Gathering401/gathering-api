@@ -66,6 +66,7 @@ export const mapDbGroupToGroup = (group: DbGroup[]): GroupResponse => ({
         id: r.event_id,
         name: r.event_name,
         description: r.event_description,
-        date: new Date(r.date)
+        date: new Date(r.date),
+        groupId: r.id
     })), 'id').filter(r => r.name)
 });

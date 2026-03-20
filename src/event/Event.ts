@@ -18,10 +18,10 @@ export interface PartialEvent {
     name: string;
     description: string;
     date: Date;
+    groupId: number | undefined;
 }
 
 export interface Event extends PartialEvent {
-    groupId: number;
     location: string;
     host: Rsvp;
     rsvps: Rsvp[];
@@ -36,6 +36,28 @@ export interface Rsvp {
     fullName: string;
 }
 
+interface PartialDbEventGet {
+    id: number;
+    name: string;
+    description: string;
+    date: string;
+    group_id: number;
+}
+
+export interface DbEventGet extends PartialDbEventGet {
+    series_id: string;
+    repetition: Repetition.annually;
+    rsvp_status: RsvpStatus;
+    username: string;
+    first_name: string;
+    last_name: string;
+    user_id: string;
+    location: string;
+    date: string;
+    cost: number | undefined;
+    host_id: number;
+}
+
 export interface DbEventPost {
     name: string;
     description: string;
@@ -48,17 +70,6 @@ export interface DbEventPost {
     series_id: number;
 }
 
-export interface DbEventGet extends Omit<DbEventPost, 'series_id'> {
-    id: number;
-    series_id: string;
-    repetition: Repetition.annually;
-    rsvp_status: RsvpStatus;
-    username: string;
-    first_name: string;
-    last_name: string;
-    user_id: string;
-}
-
 export const mapEventPostToDbEvent = (event: EventPost, seriesId: number): DbEventPost[] => event.dates.map((date: string) => ({
     name: event.name,
     description: event.description,
@@ -69,6 +80,14 @@ export const mapEventPostToDbEvent = (event: EventPost, seriesId: number): DbEve
     group_id: event.groupId,
     host_id: event.hostId,
     series_id: seriesId,
+}));
+
+export const mapDbEventsToPartialEvents = (events: PartialDbEventGet[]): PartialEvent[] => events.map(e => ({
+    id: e.id,
+    name: e.name,
+    description: e.description,
+    date: new Date(e.date),
+    groupId: Number(e.group_id)
 }));
 
 export const mapDbEventToEvent = (events: DbEventGet[]): Event => {

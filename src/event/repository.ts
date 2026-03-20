@@ -27,6 +27,14 @@ export const selectEvent = async (id: number, role: Role, userId: number) => {
     return query;
 }
 
+export const selectEvents = async (userId: number) => {
+    return database
+        .table('event')
+        .select('event.id', 'event.name', 'event.description', 'event.date', 'event.group_id')
+        .leftJoin('event_invitation', 'event.id', 'event_invitation.event_id')
+        .where('event_invitation.user_id', userId);
+}
+
 export const postEvent = async (event: EventPost) => {
     const { rows } = await database.raw('SELECT max(series_id) FROM event LIMIT 1');
 
