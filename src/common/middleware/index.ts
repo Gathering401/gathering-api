@@ -1,4 +1,5 @@
 export * from './isAdmin';
+export * from './isAdminOrHost';
 export * from './isAuthenticated';
 export * from './isCurrentUser';
 export * from './isInGroup';

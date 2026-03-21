@@ -1,6 +1,7 @@
 import knex from 'knex';
-import {EventPost, mapEventPostToDbEvent} from "./Event";
+import {EventPost, EventPutMulti, EventPutSingle, mapEventPostToDbEvent} from "./Event";
 import {Role} from "../common/enums/role";
+import _ from "lodash";
 
 const connection = require('../knexfile')[process.env.NODE_ENV || 'development'];
 
@@ -12,10 +13,7 @@ export const selectEvent = async (id: number, role: Role, userId: number) => {
         .select('event.*')
         .where('event.id', id);
 
-    const [event] = await database
-        .table('event')
-        .select('host_id')
-        .where('id', id);
+    const [event] = await selectEventHost(id);
 
     if([Role.admin, Role.owner].includes(role) || Number(event.host_id) === Number(userId)) {
         query
@@ -25,6 +23,13 @@ export const selectEvent = async (id: number, role: Role, userId: number) => {
     }
 
     return query;
+}
+
+export const selectEventHost = async (eventId: number) => {
+    return database
+        .table('event')
+        .select('host_id')
+        .where('id', eventId);
 }
 
 export const selectEvents = async (userId: number) => {
@@ -57,4 +62,21 @@ export const postEvent = async (event: EventPost) => {
             event_id: e.id,
             rsvp_status: u.user_id == event.hostId ? 2 : 1,
         }))).flat());
+}
+
+export const putEvent = async (event: EventPutMulti | EventPutSingle, seriesId?: number) => {
+    const query = database
+        .table('event');
+
+    if(seriesId) {
+        query
+            .update(_.omit(event, 'id'))
+            .where('series_id', seriesId);
+    } else {
+        query
+            .update(event)
+            .where('id', event.id);
+    }
+
+    await query;
 }

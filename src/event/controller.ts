@@ -1,7 +1,7 @@
 import {Request, Response} from 'express';
-import {EventPost, mapDbEventsToPartialEvents, mapDbEventToEvent} from "./Event";
-import {getEventValidator} from "./validation";
-import {postEvent, selectEvent, selectEvents} from "./repository";
+import {EventPost, EventPutMulti, EventPutSingle, mapDbEventsToPartialEvents, mapDbEventToEvent} from "./Event";
+import {getEventValidator, getUpdateEventValidator, getUpdateSeriesValidator} from "./validation";
+import {postEvent, putEvent, selectEvent, selectEvents} from "./repository";
 
 export const getEvent = async (req: Request, res: Response) => {
     try {
@@ -51,6 +51,29 @@ export const createEvent = async (req: Request, res: Response) => {
         }
 
         await postEvent(event);
+
+        res.status(201).json({
+            success: true
+        });
+    } catch (err: any) {
+        res.status(500).json({success: false, error: err.message});
+    }
+}
+
+export const updateEvent = async (req: Request, res: Response) => {
+    try {
+        const seriesId = Number(req.query.seriesId);
+        const event = req.body;
+
+        try {
+            const validator = seriesId ? getUpdateSeriesValidator() : getUpdateEventValidator();
+
+            await validator.validate(event);
+        } catch (error) {
+            return res.status(400).json({ error: 'Invalid input', details: error });
+        }
+
+        await putEvent(event, isNaN(seriesId) ? undefined : seriesId);
 
         res.status(201).json({
             success: true

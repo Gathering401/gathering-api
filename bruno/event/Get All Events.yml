@@ -5,14 +5,7 @@ info:
 
 http:
   method: GET
-  url: http://localhost:3000/event?eventId=21&id=1
-  params:
-    - name: eventId
-      value: "21"
-      type: query
-    - name: id
-      value: "1"
-      type: query
+  url: http://localhost:3000/event/all
   auth: inherit
 
 settings:

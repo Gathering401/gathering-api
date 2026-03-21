@@ -13,6 +13,18 @@ export interface EventPost {
     repetition: Repetition;
 }
 
+export interface EventPutMulti {
+    id: number;
+    name: string;
+    description: string;
+    location: string;
+    cost?: number;
+}
+
+export interface EventPutSingle extends EventPutMulti {
+    date: string;
+}
+
 export interface PartialEvent {
     id: number;
     name: string;
@@ -67,10 +79,10 @@ export interface DbEventPost {
     repetition: Repetition;
     group_id: number;
     host_id: number;
-    series_id: number;
+    series_id?: number;
 }
 
-export const mapEventPostToDbEvent = (event: EventPost, seriesId: number): DbEventPost[] => event.dates.map((date: string) => ({
+export const mapEventPostToDbEvent = (event: EventPost, seriesId?: number): DbEventPost[] => event.dates.map((date: string) => ({
     name: event.name,
     description: event.description,
     location: event.location,
@@ -79,7 +91,7 @@ export const mapEventPostToDbEvent = (event: EventPost, seriesId: number): DbEve
     repetition: event.repetition,
     group_id: event.groupId,
     host_id: event.hostId,
-    series_id: seriesId,
+    ...(seriesId ? {series_id: seriesId} : {}),
 }));
 
 export const mapDbEventsToPartialEvents = (events: PartialDbEventGet[]): PartialEvent[] => events.map(e => ({
