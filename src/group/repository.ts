@@ -162,6 +162,18 @@ export const deleteGroupUser = async (groupId: number, userId: number) => {
         .delete()
         .where('group_id', groupId)
         .andWhere('user_id', userId);
+
+    const eventIds = (await database
+        .table('event')
+        .select('id')
+        .where('group_id', groupId))
+        .map(e => e.id);
+
+    await database
+        .table('event_invitation')
+        .delete()
+        .whereIn('event_id', eventIds)
+        .andWhere('user_id', userId);
 }
 
 export const putUserRole = async (groupId: number, userId: number, role: Role) => {
