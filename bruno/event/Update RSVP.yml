@@ -1,0 +1,27 @@
+info:
+  name: Update RSVP
+  type: http
+  seq: 6
+
+http:
+  method: PUT
+  url: http://localhost:3000/event/rsvp?id=1&eventId=6&rsvp=2
+  params:
+    - name: id
+      value: "1"
+      type: query
+    - name: eventId
+      value: "6"
+      type: query
+    - name: rsvp
+      value: "2"
+      type: query
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImhvbmV5MzQ2IiwidXNlcklkIjoyLCJpYXQiOjE3NzQxNDYwODUsImV4cCI6MTc3NDIzMjQ4NX0._jB8yTbfqTJWkITMIFKdJlaWB9l4eUvHfaMp4ZbsRj0
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,5 +1,5 @@
 import knex from 'knex';
-import {EventPost, EventPutMulti, EventPutSingle, mapEventPostToDbEvent} from "./Event";
+import {EventPost, EventPutMulti, EventPutSingle, mapEventPostToDbEvent, Rsvp} from "./Event";
 import {Role} from "../common/enums/role";
 import _ from "lodash";
 
@@ -110,4 +110,12 @@ const deleteEventInvitations = async (eventIds: number[]) => {
         .table('event_invitation')
         .delete()
         .whereIn('event_id', eventIds);
+}
+
+export const putRsvp = async (eventId: number, userId: number, rsvp: Rsvp) => {
+    await database
+        .table('event_invitation')
+        .update('rsvp_status', rsvp)
+        .where('event_id', eventId)
+        .andWhere('user_id', userId);
 }

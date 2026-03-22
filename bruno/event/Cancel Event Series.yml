@@ -5,13 +5,16 @@ info:
 
 http:
   method: DELETE
-  url: http://localhost:3000/event?id=1&seriesId=1
+  url: http://localhost:3000/event?id=1&seriesId=1&eventId=2
   params:
     - name: id
       value: "1"
       type: query
     - name: seriesId
       value: "1"
+      type: query
+    - name: eventId
+      value: "2"
       type: query
   auth: inherit
 

@@ -1,7 +1,15 @@
 import {Request, Response} from 'express';
-import {EventPost, EventPutMulti, EventPutSingle, mapDbEventsToPartialEvents, mapDbEventToEvent} from "./Event";
+import {EventPost, EventPutMulti, EventPutSingle, mapDbEventsToPartialEvents, mapDbEventToEvent, Rsvp} from "./Event";
 import {getEventValidator, getUpdateEventValidator, getUpdateSeriesValidator} from "./validation";
-import {deleteSeriesEvent, deleteSingleEvent, postEvent, putEvent, selectEvent, selectEvents} from "./repository";
+import {
+    deleteSeriesEvent,
+    deleteSingleEvent,
+    postEvent,
+    putEvent,
+    putRsvp,
+    selectEvent,
+    selectEvents
+} from "./repository";
 
 export const getEvent = async (req: Request, res: Response) => {
     try {
@@ -93,6 +101,22 @@ export const cancelEvent = async (req: Request, res: Response) => {
         } else {
             await deleteSeriesEvent(seriesId);
         }
+
+        res.status(204).json({
+            success: true
+        });
+    } catch (err: any) {
+        res.status(500).json({success: false, error: err.message});
+    }
+}
+
+export const changeRsvp = async (req: Request, res: Response) => {
+    try {
+        const eventId = Number(req.query.eventId);
+        const rsvp = Number(req.query.rsvp) as any as Rsvp;
+        const userId = Number(res.locals.userId);
+
+        await putRsvp(eventId, userId, rsvp);
 
         res.status(204).json({
             success: true
