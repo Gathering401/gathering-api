@@ -26,6 +26,7 @@
   "homepage": "https://github.com/Gathering401/gathering-api#readme",
   "dependencies": {
     "@types/knex": "^0.15.2",
+    "@types/luxon": "^3.7.1",
     "@types/node": "^25.4.0",
     "@types/pg": "^8.18.0",
     "@types/yup": "^0.29.14",
@@ -36,6 +37,7 @@
     "jsonwebtoken": "^9.0.3",
     "knex": "^3.1.0",
     "lodash": "^4.17.23",
+    "luxon": "^3.7.2",
     "pg": "^8.20.0",
     "typescript": "^5.9.3",
     "yup": "^1.7.1"

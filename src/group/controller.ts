@@ -7,7 +7,7 @@ import {
     postUserInvite,
     putGroup,
     putUserInvite,
-    putUserRequest, putUserRole, selectGroup,
+    putUserRole, selectGroup,
     updateOwner
 } from "./repository";
 import {GroupUser} from "../common/constants/GroupUser";
@@ -133,7 +133,7 @@ export const respondToInvite = async (req: Request, res: Response) => {
         const {id, accepted} = req.query;
         const userId = res.locals.userId;
 
-        await putUserInvite(Number(id), userId, accepted === "true");
+        await putUserInvite(Number(id), userId, accepted === "true", true);
 
         res.status(204).json({
             success: true,
@@ -160,9 +160,9 @@ export const requestToJoin = async (req: Request, res: Response) => {
 
 export const respondToRequest = async (req: Request, res: Response) => {
     try {
-        const {id: groupId, userId, accepted} = req.query;
+        const { id, userId, accepted} = req.query;
 
-        await putUserRequest(Number(groupId), Number(userId), accepted === "true");
+        await putUserInvite(Number(id), Number(userId), accepted === "true", false);
 
         res.status(204).json({
             success: true,

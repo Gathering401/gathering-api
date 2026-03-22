@@ -8,7 +8,7 @@ http:
   url: http://localhost:3000/signup
   body:
     type: json
-    data: "{{jon}}"
+    data: "{{tanya}}"
   auth: inherit
 
 runtime:

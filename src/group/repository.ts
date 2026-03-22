@@ -1,10 +1,11 @@
 import knex from 'knex';
-
-const connection = require('../knexfile')[process.env.NODE_ENV || 'development'];
 import {DbGroupPost, Group, mapGroupToDbGroup} from "./Group";
 import {Role} from "../common/enums/role";
 import {InviteStatus} from "../common/enums/inviteStatus";
 import {GroupUser} from "../common/constants/GroupUser";
+import {DateTime} from "luxon";
+
+const connection = require('../knexfile')[process.env.NODE_ENV || 'development'];
 
 const database = knex(connection);
 
@@ -106,7 +107,9 @@ export const postUserInvite = async (userId: number, groupId: number, invitedByG
     const [group] = await database
         .table('group')
         .select('public')
-        .where('group_id', groupId);
+        .where('id', groupId);
+
+    const canJoinImmediately = Boolean(group.public && !invitedByGroup);
 
     await database
         .table('group_user')
@@ -114,28 +117,43 @@ export const postUserInvite = async (userId: number, groupId: number, invitedByG
             user_id: userId,
             group_id: groupId,
             invited_by_group: invitedByGroup,
-            invite_status: (group.public && !invitedByGroup) ? InviteStatus.accepted : InviteStatus.pending
+            invite_status: canJoinImmediately ? InviteStatus.accepted : InviteStatus.pending
         });
+
+    if(canJoinImmediately) {
+        await postEventInvitesForNewGroupUser(groupId, userId);
+    }
 }
 
-export const putUserInvite = async (groupId: number, userId: number, accepted: boolean) => {
-    await database
-        .table('group_user')
-        .update({
-            invite_status: accepted ? InviteStatus.accepted : InviteStatus.rejected_by_user
-        })
+export const postEventInvitesForNewGroupUser = async (groupId: number, userId: number) => {
+    const eventsFromGroup = await database
+        .table('event')
+        .select('id')
         .where('group_id', groupId)
-        .andWhere('user_id', userId);
+        .andWhere('date', '>=', DateTime.now().toISO());
+
+    await database
+        .table('event_invitation')
+        .insert(eventsFromGroup.map(e => ({
+            event_id: e.id,
+            user_id: userId
+        })));
 }
 
-export const putUserRequest = async (groupId: number, userId: number, accepted: boolean) => {
+export const putUserInvite = async (groupId: number, userId: number, accepted: boolean, invitedByGroup: boolean) => {
+    const inviteStatus = accepted
+        ? InviteStatus.accepted
+        : invitedByGroup
+            ? InviteStatus.rejected_by_user
+            : InviteStatus.rejected_by_group;
+
     await database
         .table('group_user')
-        .update({
-            invite_status: accepted ? InviteStatus.accepted : InviteStatus.rejected_by_group
-        })
+        .update({ invite_status: inviteStatus })
         .where('group_id', groupId)
         .andWhere('user_id', userId);
+
+    await postEventInvitesForNewGroupUser(groupId, userId);
 }
 
 export const deleteGroupUser = async (groupId: number, userId: number) => {
