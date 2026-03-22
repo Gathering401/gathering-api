@@ -80,3 +80,34 @@ export const putEvent = async (event: EventPutMulti | EventPutSingle, seriesId?:
 
     await query;
 }
+
+export const deleteSingleEvent = async (eventId: number) => {
+    await database
+        .table('event')
+        .delete()
+        .where('id', eventId);
+
+    await deleteEventInvitations([eventId]);
+}
+
+export const deleteSeriesEvent = async (seriesId: number) => {
+    const eventIds = (await database
+        .table('event')
+        .select('id')
+        .where('series_id', seriesId))
+        .map(e => e.id);
+
+    await database
+        .table('event')
+        .delete()
+        .where('series_id', seriesId);
+
+    await deleteEventInvitations(eventIds);
+}
+
+const deleteEventInvitations = async (eventIds: number[]) => {
+    await database
+        .table('event_invitation')
+        .delete()
+        .whereIn('event_id', eventIds);
+}

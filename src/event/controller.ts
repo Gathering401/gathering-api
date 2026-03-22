@@ -1,7 +1,7 @@
 import {Request, Response} from 'express';
 import {EventPost, EventPutMulti, EventPutSingle, mapDbEventsToPartialEvents, mapDbEventToEvent} from "./Event";
 import {getEventValidator, getUpdateEventValidator, getUpdateSeriesValidator} from "./validation";
-import {postEvent, putEvent, selectEvent, selectEvents} from "./repository";
+import {deleteSeriesEvent, deleteSingleEvent, postEvent, putEvent, selectEvent, selectEvents} from "./repository";
 
 export const getEvent = async (req: Request, res: Response) => {
     try {
@@ -76,6 +76,25 @@ export const updateEvent = async (req: Request, res: Response) => {
         await putEvent(event, isNaN(seriesId) ? undefined : seriesId);
 
         res.status(201).json({
+            success: true
+        });
+    } catch (err: any) {
+        res.status(500).json({success: false, error: err.message});
+    }
+}
+
+export const cancelEvent = async (req: Request, res: Response) => {
+    try {
+        const seriesId = Number(req.query.seriesId);
+        const eventId = Number(req.query.eventId);
+
+        if(isNaN(seriesId)) {
+            await deleteSingleEvent(eventId);
+        } else {
+            await deleteSeriesEvent(seriesId);
+        }
+
+        res.status(204).json({
             success: true
         });
     } catch (err: any) {

@@ -5,7 +5,7 @@ import {selectEventHost} from "../../event/repository";
 export const isAdminOrHost = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const role = res.locals.role;
-        const eventId = req.body.id;
+        const eventId = req.query.eventId;
 
         const [response] = await selectEventHost(Number(eventId));
 
