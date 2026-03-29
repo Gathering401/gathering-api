@@ -9,7 +9,7 @@ const connection = require('../knexfile')[process.env.NODE_ENV || 'development']
 
 const database = knex(connection);
 
-export const selectGroup = async (groupId: number, isInGroup: boolean, isAdmin: boolean) => {
+export const selectGroup = async (groupId: number, isAdmin: boolean) => {
     const query = database
         .table('group')
         .select('group.*', 'event.name as event_name', 'event.description as event_description', 'event.date', 'event.id as event_id',
@@ -17,17 +17,11 @@ export const selectGroup = async (groupId: number, isInGroup: boolean, isAdmin: 
         .leftJoin('event', 'group.id', 'event.group_id')
         .where('group.id', groupId);
 
-    if (!isInGroup) {
+    if (!isAdmin) {
         query
             .leftJoin('group_user', function () {
                 this.on('group.id', '=', 'group_user.group_id')
                     .onIn('group_user.role', [4])
-            });
-    } else if (!isAdmin) {
-        query
-            .leftJoin('group_user', function () {
-                this.on('group.id', '=', 'group_user.group_id')
-                    .onIn('group_user.invite_status', [2])
             });
     } else {
         query
@@ -103,13 +97,19 @@ export const updateOwner = async (groupUser: GroupUser, currentUserId: number) =
         .andWhere('group_id', groupUser.groupId);
 }
 
-export const postUserInvite = async (userId: number, groupId: number, invitedByGroup: boolean) => {
+const isPublic = async (groupId: number) => {
     const [group] = await database
         .table('group')
         .select('public')
         .where('id', groupId);
 
-    const canJoinImmediately = Boolean(group.public && !invitedByGroup);
+    return group.public;
+}
+
+export const postUserInvite = async (userId: number, groupId: number, invitedByGroup: boolean) => {
+    const publicGroup = await isPublic(groupId);
+
+    const canJoinImmediately = Boolean(publicGroup && !invitedByGroup);
 
     await database
         .table('group_user')
