@@ -56,7 +56,11 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const token = generateAccessToken(username, user.id!);
-    res.json({ success: true, username: user.username, token });
+    res.status(200).json({
+        success: true,
+        user: _.omit(user, 'password'),
+        token
+    });
 }
 
 export const update = async (req: Request, res: Response) => {

@@ -16,15 +16,15 @@ export const postUser = async (user: User): Promise<User[]> => {
 export const getUser = async (username: string): Promise<User[]> => {
     return database
         .table('user')
-        .where('username', username)
-        .returning(['id', 'first_name', 'last_name', 'email', 'birthdate', 'username']);
+        .select('*')
+        .where('username', username);
 }
 
 export const getUserById = async (id: number): Promise<User[]> => {
     return database
         .table('user')
-        .where('id', id)
-        .returning(['id', 'first_name', 'last_name', 'email', 'birthdate', 'username']);
+        .select('*')
+        .where('id', id);
 }
 
 export const putUser = async (user: User): Promise<User> => {

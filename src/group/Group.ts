@@ -52,10 +52,10 @@ export const mapGroupToDbGroup = (group: Group): DbGroupPost => ({
 export const mapDbGroupToGroup = (group: DbGroup[]): GroupResponse => ({
     id: group[0]!.id!,
     name: group[0]!.name,
-    description: group[0]!.name,
+    description: group[0]!.description,
     public: group[0]!.public,
     members: _.uniqBy(group.map(r => ({
-        id: r.user_id,
+        id: Number(r.user_id),
         username: r.username,
         firstName: r.first_name,
         lastName: r.last_name,
