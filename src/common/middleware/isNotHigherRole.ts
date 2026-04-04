@@ -9,7 +9,7 @@ export const isNotHigherRole = async (req: Request, res: Response, next: NextFun
         const { groupId, role } = res.locals;
 
         const [user] = await getGroupUserBy(groupId, userId);
-        if (!user || user.id !== userId) {
+        if (!user || Number(user.user_id) !== userId) {
             return res.status(404).json({ success: false, message: "User is not part of this group" });
         } else if(user.role === Role.owner || (user.role === Role.admin && role !== Role.owner)) {
             return res.status(403).json({ success: false, message: "You do not have permission to modify this user" });

@@ -77,15 +77,15 @@ export const deleteGroup = async (id: number) => {
         .delete().where('id', id);
 }
 
-export const updateOwner = async (groupUser: GroupUser, currentUserId: number) => {
+export const updateOwner = async (groupId: number, newOwnerId: number, currentUserId: number) => {
     await database
         .table('group_user')
         .update({
             role: Role.owner,
             invite_status: InviteStatus.accepted
         })
-        .where('user_id', groupUser.userId)
-        .andWhere('group_id', groupUser.groupId);
+        .where('user_id', newOwnerId)
+        .andWhere('group_id', groupId);
 
     await database
         .table('group_user')
@@ -94,7 +94,7 @@ export const updateOwner = async (groupUser: GroupUser, currentUserId: number) =
             invite_status: InviteStatus.accepted
         })
         .where('user_id', currentUserId)
-        .andWhere('group_id', groupUser.groupId);
+        .andWhere('group_id', groupId);
 }
 
 const isPublic = async (groupId: number) => {

@@ -31,7 +31,8 @@ export const getGroup = async (req: Request, res: Response) => {
 
         res.status(200).json({
             success: true,
-            response: mapDbGroupToGroup(response)
+            response: mapDbGroupToGroup(response),
+            currentRole: user.role
         })
     } catch (err: any) {
         res.status(500).json({success: false, error: err.message});
@@ -101,13 +102,13 @@ export const removeGroup = async (req: Request, res: Response) => {
 
 export const changeOwner = async (req: Request, res: Response) => {
     try {
-        const groupUser = req.body as GroupUser;
-        const userId = res.locals.userId;
+        const { groupId, userId } = res.locals;
+        const { userId: newOwnerId } = req.query;
 
-        await updateOwner(groupUser, userId);
+        await updateOwner(groupId, Number(newOwnerId), Number(userId));
 
         res.status(204).json({
-            success: true,
+            success: true
         });
     } catch (err: any) {
         res.status(500).json({success: false, error: err.message});

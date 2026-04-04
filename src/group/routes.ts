@@ -30,7 +30,7 @@ router.post('/', createGroup);
 router.put('/', isInGroup, isAdmin, updateGroup);
 router.delete('/', isInGroup, isOwner, removeGroup);
 router.get('/', getGroup);
-router.post('/change-owner', isInGroup, isOwner, changeOwner);
+router.put('/change-owner', isInGroup, isOwner, changeOwner);
 router.post('/invite-user', isInGroup, isAdmin, isNotPendingInvite, inviteUser);
 router.put('/invite-response', isPendingInvite, respondToInvite);
 router.post('/request-to-join', isNotPendingInvite, requestToJoin);
