@@ -185,3 +185,11 @@ export const putUserRole = async (groupId: number, userId: number, role: Role) =
         .where('group_id', groupId)
         .andWhere('user_id', userId);
 }
+
+export const getUserGroups = async (userId: number) => {
+    return database
+        .table('group')
+        .select('group.*')
+        .leftJoin('group_user', 'group.id', 'group_user.group_id')
+        .where('group_user.user_id', userId);
+}

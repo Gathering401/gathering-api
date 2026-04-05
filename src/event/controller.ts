@@ -58,10 +58,11 @@ export const createEvent = async (req: Request, res: Response) => {
             return res.status(400).json({error: 'Invalid input', details: error});
         }
 
-        await postEvent(event);
+        const [response] = await postEvent(event);
 
         res.status(201).json({
-            success: true
+            success: true,
+            response
         });
     } catch (err: any) {
         res.status(500).json({success: false, error: err.message});

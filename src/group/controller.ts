@@ -2,7 +2,7 @@ import {Request, Response} from 'express';
 import {getGroupValidator} from "./validation";
 import {Group, mapDbGroupToGroup, mapGroupToDbGroup} from "./Group";
 import {
-    deleteGroup, deleteGroupUser, getGroupUserBy,
+    deleteGroup, deleteGroupUser, getGroupUserBy, getUserGroups,
     postGroup,
     postUserInvite,
     putGroup,
@@ -10,7 +10,6 @@ import {
     putUserRole, selectGroup,
     updateOwner
 } from "./repository";
-import {GroupUser} from "../common/constants/GroupUser";
 import {Role} from "../common/enums/role";
 
 export const getGroup = async (req: Request, res: Response) => {
@@ -218,6 +217,21 @@ export const changeRole = async (req: Request, res: Response) => {
 
         res.status(204).json({
             success: true
+        });
+    } catch (err: any) {
+        res.status(500).json({success: false, error: err.message});
+    }
+}
+
+export const getMyGroups = async (_: Request, res: Response) => {
+    try {
+        const userId = Number(res.locals.userId);
+
+        const response = await getUserGroups(userId);
+
+        res.status(200).json({
+            success: true,
+            response
         });
     } catch (err: any) {
         res.status(500).json({success: false, error: err.message});

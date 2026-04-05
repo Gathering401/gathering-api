@@ -62,6 +62,8 @@ export const postEvent = async (event: EventPost) => {
             event_id: e.id,
             rsvp_status: u.user_id == event.hostId ? 2 : 1,
         }))).flat());
+
+    return response;
 }
 
 export const putEvent = async (event: EventPutMulti | EventPutSingle, seriesId?: number) => {

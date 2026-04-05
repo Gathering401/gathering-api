@@ -2,7 +2,7 @@ import {Router} from 'express';
 import {
     changeOwner,
     changeRole,
-    createGroup, getGroup,
+    createGroup, getGroup, getMyGroups,
     inviteUser, leaveGroup,
     removeGroup,
     removeMember,
@@ -38,5 +38,6 @@ router.put('/request-response', isInGroup, isAdmin, isPendingRequest, respondToR
 router.delete('/remove-member', isInGroup, isAdmin, isLowerRole, removeMember);
 router.delete('/leave', isInGroup, isNotOwner, leaveGroup);
 router.put('/change-role', isInGroup, isAdmin, isLowerRole, isNotHigherRole, changeRole);
+router.get('/my-groups', getMyGroups);
 
 export default router;
