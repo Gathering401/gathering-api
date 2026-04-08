@@ -8,7 +8,7 @@ http:
   url: http://localhost:3000/signup
   body:
     type: json
-    data: "{{jon}}"
+    data: "{{unknown}}"
   auth: inherit
 
 runtime:
@@ -32,6 +32,36 @@ runtime:
           "email": "jnnystrv3398@gmail.com",
           "password": "P@ssw0rd",
           "birthdate": "1998-03-03"
+        }
+    - name: lukas
+      value: |-
+        {
+          "username": "lstruve",
+          "firstName": "Lukas",
+          "lastName": "Struve",
+          "email": "lstruve@example.com",
+          "password": "P@ssw0rd",
+          "birthdate": "2022-03-24"
+        }
+    - name: adrien
+      value: |-
+        {
+          "username": "astruve",
+          "firstName": "Adrien",
+          "lastName": "Struve",
+          "email": "astruve@example.com",
+          "password": "P@ssw0rd",
+          "birthdate": "2024-02-19"
+        }
+    - name: unknown
+      value: |-
+        {
+          "username": "ustruve",
+          "firstName": "Unknown",
+          "lastName": "Struve",
+          "email": "ustruve@example.com",
+          "password": "P@ssw0rd",
+          "birthdate": "2026-06-18"
         }
 
 settings:
