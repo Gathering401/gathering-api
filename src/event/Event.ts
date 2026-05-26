@@ -31,6 +31,7 @@ export interface PartialEvent {
     description: string;
     date: Date;
     groupId: number | undefined;
+    groupName: string | undefined;
 }
 
 export interface Event extends PartialEvent {
@@ -54,6 +55,7 @@ interface PartialDbEventGet {
     description: string;
     date: string;
     group_id: number;
+    group_name: string;
 }
 
 export interface DbEventGet extends PartialDbEventGet {
@@ -99,7 +101,8 @@ export const mapDbEventsToPartialEvents = (events: PartialDbEventGet[]): Partial
     name: e.name,
     description: e.description,
     date: new Date(e.date),
-    groupId: Number(e.group_id)
+    groupId: Number(e.group_id),
+    groupName: e.group_name
 }));
 
 export const mapDbEventToEvent = (events: DbEventGet[]): Event => {
@@ -121,6 +124,7 @@ export const mapDbEventToEvent = (events: DbEventGet[]): Event => {
         host: rsvps.find(u => u.userId === Number(event.host_id))!,
         rsvps,
         cost: event.cost ?? 0,
-        date: new Date(event.date)
+        date: new Date(event.date),
+        groupName: event.group_name
     }
 }

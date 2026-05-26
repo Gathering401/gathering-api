@@ -10,7 +10,8 @@ const database = knex(connection);
 export const selectEvent = async (id: number, role: Role, userId: number) => {
     const query = database
         .table('event')
-        .select('event.*')
+        .select('event.*', 'group.name as group_name')
+        .leftJoin('group', 'event.group_id', 'group.id')
         .where('event.id', id);
 
     const [event] = await selectEventHost(id);
@@ -35,9 +36,12 @@ export const selectEventHost = async (eventId: number) => {
 export const selectEvents = async (userId: number) => {
     return database
         .table('event')
-        .select('event.id', 'event.name', 'event.description', 'event.date', 'event.group_id')
+        .select('event.id', 'event.name', 'event.description', 'event.date', 'event.group_id', 'group.name as group_name')
         .leftJoin('event_invitation', 'event.id', 'event_invitation.event_id')
-        .where('event_invitation.user_id', userId);
+        .leftJoin('group', 'event.group_id', 'group.id')
+        .where('event_invitation.user_id', userId)
+        .andWhere('event_invitation.rsvp_status', '<>', 3)
+        .andWhere('event.date', '>=', new Date());
 }
 
 export const postEvent = async (event: EventPost) => {

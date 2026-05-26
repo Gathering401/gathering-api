@@ -1,5 +1,5 @@
 import {Request, Response} from 'express';
-import {EventPost, EventPutMulti, EventPutSingle, mapDbEventsToPartialEvents, mapDbEventToEvent, Rsvp} from "./Event";
+import {EventPost, mapDbEventsToPartialEvents, mapDbEventToEvent, Rsvp} from "./Event";
 import {getEventValidator, getUpdateEventValidator, getUpdateSeriesValidator} from "./validation";
 import {
     deleteSeriesEvent,
