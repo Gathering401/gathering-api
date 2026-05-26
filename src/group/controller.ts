@@ -7,7 +7,7 @@ import {
     postUserInvite,
     putGroup,
     putUserInvite,
-    putUserRole, selectGroup,
+    putUserRole, selectAvailableGroups, selectGroup,
     updateOwner
 } from "./repository";
 import {Role} from "../common/enums/role";
@@ -35,6 +35,36 @@ export const getGroup = async (req: Request, res: Response) => {
         })
     } catch (err: any) {
         res.status(500).json({success: false, error: err.message});
+    }
+}
+
+export const getMyGroups = async (_: Request, res: Response) => {
+    try {
+        const userId = Number(res.locals.userId);
+
+        const response = await getUserGroups(userId);
+
+        res.status(200).json({
+            success: true,
+            response
+        });
+    } catch (err: any) {
+        res.status(500).json({success: false, error: err.message});
+    }
+}
+
+export const getAvailableGroups = async (req: Request, res: Response) => {
+    try {
+        const searchString = req.query.searchString as string | undefined;
+
+        const response = await selectAvailableGroups(searchString);
+
+        res.status(200).json({
+            success: true,
+            response
+        });
+    } catch (err: any) {
+        res.status(500).json({ success: false, error: err.message });
     }
 }
 
@@ -217,21 +247,6 @@ export const changeRole = async (req: Request, res: Response) => {
 
         res.status(204).json({
             success: true
-        });
-    } catch (err: any) {
-        res.status(500).json({success: false, error: err.message});
-    }
-}
-
-export const getMyGroups = async (_: Request, res: Response) => {
-    try {
-        const userId = Number(res.locals.userId);
-
-        const response = await getUserGroups(userId);
-
-        res.status(200).json({
-            success: true,
-            response
         });
     } catch (err: any) {
         res.status(500).json({success: false, error: err.message});

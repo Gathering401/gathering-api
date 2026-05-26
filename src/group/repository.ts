@@ -37,6 +37,36 @@ export const selectGroup = async (groupId: number, isAdmin: boolean) => {
     return query.leftJoin('user', 'group_user.user_id', 'user.id');
 }
 
+export const getUserGroups = async (userId: number) => {
+    return database
+        .table('group')
+        .select('group.*')
+        .leftJoin('group_user', 'group.id', 'group_user.group_id')
+        .where('group_user.user_id', userId);
+}
+
+export const selectAvailableGroups = async (searchString?: string) => {
+    const query = database
+        .table('group')
+        .select('group.*')
+        .count('group_user.user_id as member_count')
+        .leftJoin('group_user', function () {
+            this.on('group.id', '=', 'group_user.group_id')
+                .onIn('group_user.invite_status', [2]);
+        })
+        .groupBy('group.id')
+        .orderBy('member_count', 'desc')
+        .limit(25);
+
+    if (searchString) {
+        query.where('group.name', 'like', `%${searchString}%`);
+    } else {
+        query.where('group.public', true);
+    }
+
+    return query;
+}
+
 export const postGroup = async (group: DbGroupPost, userId: number) => {
     const [response] = await database
         .table('group')
@@ -187,12 +217,4 @@ export const putUserRole = async (groupId: number, userId: number, role: Role) =
         })
         .where('group_id', groupId)
         .andWhere('user_id', userId);
-}
-
-export const getUserGroups = async (userId: number) => {
-    return database
-        .table('group')
-        .select('group.*')
-        .leftJoin('group_user', 'group.id', 'group_user.group_id')
-        .where('group_user.user_id', userId);
 }
