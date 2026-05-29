@@ -27,6 +27,7 @@ interface DbGroup extends Group {
     date: string;
     role: Role;
     invite_status: InviteStatus;
+    invited_by_group: boolean;
     user_id: number;
     username: string;
     first_name: string;
@@ -36,6 +37,7 @@ interface DbGroup extends Group {
 interface GroupUser extends Omit<User, 'password' | 'email' | 'birthdate'> {
     role: Role;
     inviteStatus: InviteStatus;
+    invitedByGroup: boolean;
 }
 
 interface GroupResponse extends Group {
@@ -60,13 +62,15 @@ export const mapDbGroupToGroup = (group: DbGroup[]): GroupResponse => ({
         firstName: r.first_name,
         lastName: r.last_name,
         role: r.role,
-        inviteStatus: r.invite_status
+        inviteStatus: r.invite_status,
+        invitedByGroup: r.invited_by_group
     })), 'id'),
     events: _.uniqBy(group.map(r => ({
         id: r.event_id,
         name: r.event_name,
         description: r.event_description,
         date: new Date(r.date),
-        groupId: r.id
+        groupId: r.id,
+        groupName: r.name
     })), 'id').filter(r => r.name)
 });
