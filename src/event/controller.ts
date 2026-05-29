@@ -24,7 +24,7 @@ export const getEvent = async (req: Request, res: Response) => {
 
         res.status(200).json({
             success: true,
-            response: mapDbEventToEvent(response)
+            response: mapDbEventToEvent(response, role)
         });
     } catch (err: any) {
         res.status(500).json({ success: false, error: err.message });
