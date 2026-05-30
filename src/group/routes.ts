@@ -7,7 +7,7 @@ import {
     removeGroup,
     removeMember,
     requestToJoin,
-    respondToInvite, respondToRequest,
+    respondToInvite, respondToRequest, searchUsers,
     updateGroup
 } from './controller';
 import {
@@ -31,6 +31,7 @@ router.put('/', isInGroup, isAdmin, updateGroup);
 router.delete('/', isInGroup, isOwner, removeGroup);
 router.get('/', getGroup);
 router.put('/change-owner', isInGroup, isOwner, changeOwner);
+router.get('/search-users', isInGroup, searchUsers);
 router.post('/invite-user', isInGroup, isAdmin, isNotPendingInvite, inviteUser);
 router.put('/invite-response', isPendingInvite, respondToInvite);
 router.post('/request-to-join', isNotPendingInvite, requestToJoin);

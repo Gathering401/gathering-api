@@ -2,7 +2,6 @@ import knex from 'knex';
 import {DbGroupPost, Group, mapGroupToDbGroup} from "./Group";
 import {Role} from "../common/enums/role";
 import {InviteStatus} from "../common/enums/inviteStatus";
-import {GroupUser} from "../common/constants/GroupUser";
 import {DateTime} from "luxon";
 
 const connection = require('../knexfile')[process.env.NODE_ENV || 'development'];
@@ -217,4 +216,20 @@ export const putUserRole = async (groupId: number, userId: number, role: Role) =
         })
         .where('group_id', groupId)
         .andWhere('user_id', userId);
+}
+
+export const getUsersBy = async (username: string, groupId: number, userId: number) => {
+    return database
+        .table('user')
+        .select('user.username', 'user.id', 'group_user.invite_status')
+        .leftJoin('group_user', function () {
+            this.on('group_user.user_id', '=', 'user.id')
+                .andOn('group_user.group_id', '=', database.raw('?', [groupId]));
+        })
+        .where('user.username', 'LIKE', `%${username}%`)
+        .andWhereNot('user.id', userId)
+        .where(function () {
+            this.whereNull('group_user.user_id')
+                .orWhere('group_user.invite_status', '=', 1)
+        });
 }

@@ -34,7 +34,7 @@ interface DbGroup extends Group {
     last_name: string;
 }
 
-interface GroupUser extends Omit<User, 'password' | 'email' | 'birthdate'> {
+interface GroupUser extends Omit<User, 'password' | 'email' | 'birthdate' | 'phone'> {
     role: Role;
     inviteStatus: InviteStatus;
     invitedByGroup: boolean;

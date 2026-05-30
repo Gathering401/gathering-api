@@ -6,7 +6,7 @@ const router = Router();
 
 router.post('/signup', register);
 router.post('/login', login);
-router.put('/user/update', isAuthenticated, isCurrentUser, update);
-router.delete('/user/delete', isAuthenticated, isCurrentUser, removeUser);
+router.put('/user', isAuthenticated, isCurrentUser, update);
+router.delete('/user', isAuthenticated, isCurrentUser, removeUser);
 
 export default router;

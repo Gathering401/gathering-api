@@ -2,7 +2,7 @@ import {Request, Response} from 'express';
 import {getGroupValidator} from "./validation";
 import {Group, mapDbGroupToGroup, mapGroupToDbGroup} from "./Group";
 import {
-    deleteGroup, deleteGroupUser, getGroupUserBy, getUserGroups,
+    deleteGroup, deleteGroupUser, getGroupUserBy, getUserGroups, getUsersBy,
     postGroup,
     postUserInvite,
     putGroup,
@@ -247,6 +247,22 @@ export const changeRole = async (req: Request, res: Response) => {
 
         res.status(204).json({
             success: true
+        });
+    } catch (err: any) {
+        res.status(500).json({success: false, error: err.message});
+    }
+}
+
+export const searchUsers = async (req: Request, res: Response) => {
+    try {
+        const {groupId, userId} = res.locals;
+        const {username} = req.query;
+
+        const response = await getUsersBy(username as string, groupId, userId);
+
+        res.status(200).json({
+            success: true,
+            response: response ?? []
         });
     } catch (err: any) {
         res.status(500).json({success: false, error: err.message});
