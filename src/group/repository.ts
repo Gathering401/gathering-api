@@ -41,7 +41,7 @@ export const getUserGroups = async (userId: number) => {
         .table('group')
         .select('group.*', 'group_user.invite_status as inviteStatus', 'group_user.invited_by_group as invitedByGroup')
         .leftJoin('group_user', 'group.id', 'group_user.group_id')
-        .whereNotIn('group_user.status', ['3', '4'])
+        .whereNotIn('group_user.invite_status', ['3', '4'])
         .andWhere('group_user.user_id', userId);
 }
 
