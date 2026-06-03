@@ -20,10 +20,8 @@ interface DbUser {
 }
 
 export interface TokenUser {
-    payload: {
-        username: string;
-        userId: number;
-    }
+    username: string;
+    userId: number;
 }
 
 export const mapUserToDb = (user: User): DbUser => ({

@@ -25,6 +25,10 @@ app.get('/status', (_, res) => {
     });
 });
 
+app.use('/', authRoutes);
+app.use('/group', groupRoutes);
+app.use('/event', eventRoutes);
+
 app.use((err: Error, _: Request, res: Response, __: NextFunction) => {
     console.error(err.stack);
     res.status(500).json({
@@ -32,10 +36,6 @@ app.use((err: Error, _: Request, res: Response, __: NextFunction) => {
         error: 'Something went wrong'
     });
 });
-
-app.use('/', authRoutes);
-app.use('/group', groupRoutes);
-app.use('/event', eventRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

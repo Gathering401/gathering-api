@@ -39,9 +39,10 @@ export const selectGroup = async (groupId: number, isAdmin: boolean) => {
 export const getUserGroups = async (userId: number) => {
     return database
         .table('group')
-        .select('group.*')
+        .select('group.*', 'group_user.invite_status as inviteStatus', 'group_user.invited_by_group as invitedByGroup')
         .leftJoin('group_user', 'group.id', 'group_user.group_id')
-        .where('group_user.user_id', userId);
+        .whereNotIn('group_user.status', ['3', '4'])
+        .andWhere('group_user.user_id', userId);
 }
 
 export const selectAvailableGroups = async (searchString?: string) => {

@@ -12,10 +12,13 @@ const encryptPassword = (password: string) =>
 const generateAccessToken = (username: string, userId: number) =>
     jwt.sign({ username, userId }, process.env.HASH_SECRET as string, { expiresIn: '24h' });
 
-export const decodeAccessToken = (accessToken: string): TokenUser => {
-    return jwt.decode(accessToken, {
-        complete: true
-    }) as any as TokenUser;
+export const verifyAccessToken = (accessToken: string): TokenUser | null => {
+    try {
+        return jwt.verify(accessToken, process.env.HASH_SECRET as string) as TokenUser;
+    } catch (err) {
+        console.log('verify error:', err);
+        return null;
+    }
 }
 
 export const register = async (req: Request, res: Response) => {
@@ -99,6 +102,24 @@ export const removeUser = async (req: Request, res: Response) => {
 
         res.status(204).json({
             success: true
+        });
+    } catch (err: any) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+}
+
+export const getProfile = async (__: Request, res: Response) => {
+    try {
+        const userId = res.locals.userId;
+        const [user] = await getUserById(userId);
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        res.status(200).json({
+            success: true,
+            user: _.omit(user, 'password')
         });
     } catch (err: any) {
         res.status(500).json({ success: false, error: err.message });
