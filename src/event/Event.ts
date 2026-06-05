@@ -114,7 +114,7 @@ export const mapDbEventToEvent = (events: DbEventGet[], currentRole: Role): Even
         rsvp: invitation.rsvp_status,
         username: invitation.username,
         fullName: `${invitation.first_name} ${invitation.last_name}`
-    })), 'id');
+    })), 'userId');
 
     const event = events[0]!;
 
