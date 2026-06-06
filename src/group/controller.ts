@@ -56,13 +56,11 @@ export const getMyGroups = async (_: Request, res: Response) => {
 export const getAvailableGroups = async (req: Request, res: Response) => {
     try {
         const searchString = req.query.searchString as string | undefined;
+        const userId = Number(res.locals.userId);
 
-        const response = await selectAvailableGroups(searchString);
+        const response = await selectAvailableGroups(searchString, userId);
 
-        res.status(200).json({
-            success: true,
-            response
-        });
+        res.status(200).json({ success: true, response });
     } catch (err: any) {
         res.status(500).json({ success: false, error: err.message });
     }
@@ -165,7 +163,7 @@ export const respondToInvite = async (req: Request, res: Response) => {
 
         await putUserInvite(Number(id), userId, accepted === "true", true);
 
-        res.status(204).json({
+        res.status(200).json({
             success: true,
         });
     } catch (err: any) {
@@ -180,8 +178,8 @@ export const requestToJoin = async (req: Request, res: Response) => {
 
         await postUserInvite(userId, groupId, false);
 
-        res.status(204).json({
-            success: true,
+        res.status(200).json({
+            success: true
         });
     } catch (err: any) {
         res.status(500).json({success: false, error: err.message});
@@ -190,11 +188,11 @@ export const requestToJoin = async (req: Request, res: Response) => {
 
 export const respondToRequest = async (req: Request, res: Response) => {
     try {
-        const { id, userId, accepted} = req.query;
+        const { id, userId, accepted } = req.query;
 
         await putUserInvite(Number(id), Number(userId), accepted === "true", false);
 
-        res.status(204).json({
+        res.status(200).json({
             success: true,
         });
     } catch (err: any) {

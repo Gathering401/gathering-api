@@ -45,21 +45,34 @@ export const getUserGroups = async (userId: number) => {
         .andWhere('group_user.user_id', userId);
 }
 
-export const selectAvailableGroups = async (searchString?: string) => {
+export const selectAvailableGroups = async (searchString?: string, userId?: number) => {
     const query = database
         .table('group')
         .select('group.*')
-        .count('group_user.user_id as member_count')
-        .leftJoin('group_user', function () {
-            this.on('group.id', '=', 'group_user.group_id')
-                .onIn('group_user.invite_status', [2]);
+        .count('gu_count.user_id as member_count')
+        .select('gu_user.invite_status as inviteStatus')
+        .leftJoin('group_user as gu_count', function () {
+            this.on('group.id', '=', 'gu_count.group_id')
+                .onIn('gu_count.invite_status', [2]);
         })
-        .groupBy('group.id')
+        .leftJoin('group_user as gu_user', function () {
+            this.on('group.id', '=', 'gu_user.group_id')
+                .on('gu_user.user_id', '=', database.raw('?', [userId]));
+        })
+        .where(function () {
+            this.whereNull('gu_user.user_id')
+                .orWhereNotIn('gu_user.invite_status', [
+                    InviteStatus.accepted,
+                    InviteStatus.pending,
+                    InviteStatus.rejected_by_group
+                ]);
+        })
+        .groupBy('group.id', 'gu_user.invite_status')
         .orderBy('member_count', 'desc')
         .limit(25);
 
     if (searchString) {
-        query.where('group.name', 'like', `%${searchString}%`);
+        query.whereRaw('LOWER("group".name) LIKE ?', [`%${searchString.toLowerCase()}%`]);
     } else {
         query.where('group.public', true);
     }
@@ -174,19 +187,27 @@ export const postEventInvitesForNewGroupUser = async (groupId: number, userId: n
 }
 
 export const putUserInvite = async (groupId: number, userId: number, accepted: boolean, invitedByGroup: boolean) => {
-    const inviteStatus = accepted
-        ? InviteStatus.accepted
-        : invitedByGroup
-            ? InviteStatus.rejected_by_user
-            : InviteStatus.rejected_by_group;
+    if (accepted) {
+        await database
+            .table('group_user')
+            .update({ invite_status: InviteStatus.accepted })
+            .where('group_id', groupId)
+            .andWhere('user_id', userId);
 
-    await database
-        .table('group_user')
-        .update({ invite_status: inviteStatus })
-        .where('group_id', groupId)
-        .andWhere('user_id', userId);
-
-    await postEventInvitesForNewGroupUser(groupId, userId);
+        await postEventInvitesForNewGroupUser(groupId, userId);
+    } else if (invitedByGroup) {
+        await database
+            .table('group_user')
+            .delete()
+            .where('group_id', groupId)
+            .andWhere('user_id', userId);
+    } else {
+        await database
+            .table('group_user')
+            .update({ invite_status: InviteStatus.rejected_by_group })
+            .where('group_id', groupId)
+            .andWhere('user_id', userId);
+    }
 }
 
 export const deleteGroupUser = async (groupId: number, userId: number) => {
