@@ -8,7 +8,7 @@ export const isPendingInvite = async (req: Request, res: Response, next: NextFun
         const groupId: number = Number(req.query.id);
 
         const [user] = await getGroupUserBy(groupId, userId);
-        if (!user || user.id !== userId) {
+        if (!user || Number(user.user_id) !== Number(userId)) {
             return res.status(400).json({ success: false, message: "You have not been invited to this group" });
         } else if(user.invite_status !== InviteStatus.pending) {
             return res.status(400).json({ success: false, message: "Invite no longer pending" });

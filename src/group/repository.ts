@@ -63,8 +63,7 @@ export const selectAvailableGroups = async (searchString?: string, userId?: numb
             this.whereNull('gu_user.user_id')
                 .orWhereNotIn('gu_user.invite_status', [
                     InviteStatus.accepted,
-                    InviteStatus.pending,
-                    InviteStatus.rejected_by_group
+                    InviteStatus.pending
                 ]);
         })
         .groupBy('group.id', 'gu_user.invite_status')
@@ -178,12 +177,14 @@ export const postEventInvitesForNewGroupUser = async (groupId: number, userId: n
         .where('group_id', groupId)
         .andWhere('date', '>=', DateTime.now().toISO());
 
-    await database
-        .table('event_invitation')
-        .insert(eventsFromGroup.map(e => ({
-            event_id: e.id,
-            user_id: userId
-        })));
+    if(eventsFromGroup.length) {
+        await database
+            .table('event_invitation')
+            .insert(eventsFromGroup.map(e => ({
+                event_id: e.id,
+                user_id: userId
+            })));
+    }
 }
 
 export const putUserInvite = async (groupId: number, userId: number, accepted: boolean, invitedByGroup: boolean) => {
@@ -248,7 +249,7 @@ export const getUsersBy = async (username: string, groupId: number, userId: numb
             this.on('group_user.user_id', '=', 'user.id')
                 .andOn('group_user.group_id', '=', database.raw('?', [groupId]));
         })
-        .where('user.username', 'LIKE', `%${username}%`)
+        .whereRaw('LOWER("user".username) LIKE ?', [`%${username.toLowerCase()}%`])
         .andWhereNot('user.id', userId)
         .where(function () {
             this.whereNull('group_user.user_id')
