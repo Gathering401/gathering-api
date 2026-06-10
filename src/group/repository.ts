@@ -33,7 +33,9 @@ export const selectGroup = async (groupId: number, isAdmin: boolean) => {
             });
     }
 
-    return query.leftJoin('user', 'group_user.user_id', 'user.id');
+    return query
+        .orderBy('event.date', 'asc')
+        .leftJoin('user', 'group_user.user_id', 'user.id');
 }
 
 export const getUserGroups = async (userId: number) => {

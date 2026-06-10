@@ -5,14 +5,14 @@ import {InviteStatus} from "../enums/inviteStatus";
 export const isInGroup = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const userId: number = Number(res.locals.userId);
-        const groupId: number = Number(req.query.id);
+        const groupId: number = Number(req.query.id ?? req.body.id);
 
         const [user] = await getGroupUserBy(groupId, userId);
         if (!user || Number(user.user_id) !== userId || user.invite_status !== InviteStatus.accepted) {
             return res.status(401).json({ success: false, message: "You do not have access to this group" });
         }
 
-        res.locals.role = user.role;
+        res.locals.role = Number(user.role);
         res.locals.groupId = groupId;
 
         next();

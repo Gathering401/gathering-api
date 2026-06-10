@@ -20,7 +20,7 @@ export const getEvent = async (req: Request, res: Response) => {
             res.status(400).json({ success: false, message: `Invalid event ID: ${req.query.eventId}` });
         }
 
-        const response = await selectEvent(eventId, role, userId);
+        const response = await selectEvent(eventId, Number(role), userId);
 
         res.status(200).json({
             success: true,
