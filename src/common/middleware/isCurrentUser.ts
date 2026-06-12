@@ -6,7 +6,7 @@ export const isCurrentUser = async (_: Request, res: Response, next: NextFunctio
         const userId = res.locals.userId;
 
         const [user] = await getUserById(userId);
-        if (!user || user.id !== userId) {
+        if (!user || Number(user.id) !== userId) {
             return res.status(401).json({ success: false, message: "You do not have access to this user" });
         }
 

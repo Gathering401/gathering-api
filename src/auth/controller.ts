@@ -59,35 +59,33 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const token = generateAccessToken(username, user.id!);
+
+    const mappedUser = {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        birthdate: user.birthdate,
+        phone: user.phone
+    };
+
     res.status(200).json({
         success: true,
-        user: _.omit(user, 'password'),
+        user: _.omit(mappedUser, 'password'),
         token
     });
 }
 
 export const update = async (req: Request, res: Response) => {
     try {
-        const user = req.body as User;
+        const userId = res.locals.userId;
 
-        try {
-            const validator = getUserValidator();
+        const response = await putUser({ ...req.body, id: userId });
 
-            await validator.validate(user);
-        } catch (error) {
-            return res.status(400).json({ error: 'Invalid input', details: error });
-        }
-
-        user.password = encryptPassword(user.password);
-
-        const response = await putUser(user);
-
-        const accessToken = generateAccessToken(user.username, response.id!);
-
-        res.status(201).json({
+        res.status(200).json({
             success: true,
-            response,
-            token: accessToken
+            response
         });
     } catch (err: any) {
         res.status(500).json({ success: false, error: err.message });

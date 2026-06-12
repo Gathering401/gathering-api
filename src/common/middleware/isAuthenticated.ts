@@ -13,7 +13,7 @@ export const isAuthenticated = (req: Request, res: Response, next: NextFunction)
             return res.status(401).json({ success: false, message: "Failed authentication" });
         }
 
-        res.locals.userId = verified.userId;
+        res.locals.userId = Number(verified.userId);
         next();
     } catch (err: any) {
         res.status(500).json({ success: false, error: err.message });

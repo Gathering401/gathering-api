@@ -13,7 +13,7 @@ export const postUser = async (user: User): Promise<User[]> => {
         .returning(['id', 'first_name', 'last_name', 'email', 'birthdate', 'username', 'phone']);
 }
 
-export const getUser = async (username: string): Promise<User[]> => {
+export const getUser = async (username: string) => {
     return database
         .table('user')
         .select('*')
@@ -27,12 +27,16 @@ export const getUserById = async (id: number): Promise<User[]> => {
         .where('id', id);
 }
 
-export const putUser = async (user: User): Promise<User> => {
+export const putUser = async (user: Partial<User>): Promise<User> => {
     return database
         .table('user')
-        .update(_.omit(mapUserToDb(user), 'password'))
+        .update({
+            first_name: user.firstName,
+            last_name: user.lastName,
+            phone: user.phone
+        })
         .where('id', user.id)
-        .returning(['id', 'first_name', 'last_name', 'email', 'username', 'birthdate']);
+        .returning(['id', 'first_name', 'last_name', 'email', 'username', 'birthdate', 'phone']);
 }
 
 export const deleteUser = async (id: number): Promise<void> => {

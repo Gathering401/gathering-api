@@ -14,23 +14,25 @@ export const selectEvent = async (id: number, role: Role, userId: number) => {
         .leftJoin('group', 'event.group_id', 'group.id')
         .where('event.id', id);
 
-    const [event] = await selectEventHost(id);
+    const [host] = await selectEventHost(id);
 
-    if([Role.admin, Role.owner].includes(role) || Number(event.host_id) === Number(userId)) {
+    if([Role.admin, Role.owner].includes(Number(role)) || Number(host.host_id) === Number(userId)) {
         query
             .leftJoin('event_invitation', 'event.id', 'event_invitation.event_id')
             .leftJoin('user', 'event_invitation.user_id', 'user.id')
             .select('event_invitation.rsvp_status', 'user.username', 'user.first_name', 'user.last_name', 'user.id as user_id')
     }
 
-    return query;
+    const events = await query;
+    return { events, host };
 }
 
 export const selectEventHost = async (eventId: number) => {
     return database
         .table('event')
-        .select('host_id')
-        .where('id', eventId);
+        .select('event.host_id', 'user.first_name', 'user.last_name', 'user.username', 'user.id as user_id')
+        .leftJoin('user', 'event.host_id', 'user.id')
+        .where('event.id', eventId);
 }
 
 export const selectEvents = async (userId: number) => {
