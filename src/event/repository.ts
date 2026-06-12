@@ -24,7 +24,8 @@ export const selectEvent = async (id: number, role: Role, userId: number) => {
     }
 
     const events = await query;
-    return { events, host };
+    const myRsvp = await selectMyRsvp(id, userId);
+    return { events, host, myRsvp };
 }
 
 export const selectEventHost = async (eventId: number) => {
@@ -33,6 +34,15 @@ export const selectEventHost = async (eventId: number) => {
         .select('event.host_id', 'user.first_name', 'user.last_name', 'user.username', 'user.id as user_id')
         .leftJoin('user', 'event.host_id', 'user.id')
         .where('event.id', eventId);
+}
+
+export const selectMyRsvp = async (eventId: number, userId: number) => {
+    const [result] = await database
+        .table('event_invitation')
+        .select('rsvp_status')
+        .where('event_id', eventId)
+        .andWhere('user_id', userId);
+    return result?.rsvp_status ?? null;
 }
 
 export const selectEvents = async (userId: number) => {

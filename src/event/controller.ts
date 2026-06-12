@@ -12,26 +12,21 @@ import {
 } from "./repository";
 
 export const getEvent = async (req: Request, res: Response) => {
-    console.log('cheeze whiz');
     try {
         const { role, userId } = res.locals;
         const eventId = Number(req.query.eventId);
 
         if(isNaN(eventId)) {
-            console.log('hello');
             res.status(400).json({ success: false, message: `Invalid event ID: ${req.query.eventId}` });
         }
 
-        const { events, host } = await selectEvent(eventId, Number(role), userId);
-        console.log('host:', host);
-        console.log('events length:', events.length);
+        const { events, host, myRsvp } = await selectEvent(eventId, Number(role), userId);
 
         res.status(200).json({
             success: true,
-            response: mapDbEventToEvent(events, role, host)
+            response: mapDbEventToEvent(events, role, host, myRsvp)
         });
     } catch (err: any) {
-        console.log('hi', err);
         res.status(500).json({ success: false, error: err.message });
     }
 }
@@ -124,7 +119,7 @@ export const changeRsvp = async (req: Request, res: Response) => {
 
         await putRsvp(eventId, userId, rsvp);
 
-        res.status(204).json({
+        res.status(200).json({
             success: true
         });
     } catch (err: any) {

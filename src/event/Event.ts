@@ -2,7 +2,6 @@ import {RsvpStatus} from "../common/enums/rsvpStatus";
 import {Repetition} from "../common/enums/repetition";
 import _ from "lodash";
 import {Role} from "../common/enums/role";
-import {GroupUser} from "../common/constants/GroupUser";
 
 export interface EventPost {
     name: string;
@@ -44,6 +43,7 @@ export interface Event extends PartialEvent {
     seriesId?: number;
     currentRole: Role;
     repetition: Repetition;
+    myRsvp: Rsvp;
 }
 
 export interface Rsvp {
@@ -109,7 +109,7 @@ export const mapDbEventsToPartialEvents = (events: PartialDbEventGet[]): Partial
     groupName: e.group_name
 }));
 
-export const mapDbEventToEvent = (events: DbEventGet[], currentRole: Role, host: any): Event => {
+export const mapDbEventToEvent = (events: DbEventGet[], currentRole: Role, host: any, myRsvp: Rsvp): Event => {
     const rsvps = _.uniqBy(events.map((invitation: DbEventGet): Rsvp => ({
         userId: Number(invitation.user_id),
         rsvp: invitation.rsvp_status,
@@ -129,7 +129,7 @@ export const mapDbEventToEvent = (events: DbEventGet[], currentRole: Role, host:
             userId: Number(host.host_id),
             fullName: `${host.first_name} ${host.last_name}`,
             username: host.username,
-            rsvp: rsvps.find(u => u.userId === Number(host.host_id))!.rsvp
+            rsvp: RsvpStatus.accepted
         },
         rsvps,
         cost: event.cost ?? 0,
@@ -137,6 +137,7 @@ export const mapDbEventToEvent = (events: DbEventGet[], currentRole: Role, host:
         groupName: event.group_name,
         seriesId: Number(event.series_id),
         repetition: event.repetition,
-        currentRole
+        currentRole,
+        myRsvp
     }
 }
