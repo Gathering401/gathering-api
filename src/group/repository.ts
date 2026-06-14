@@ -8,29 +8,46 @@ const connection = require('../knexfile')[process.env.NODE_ENV || 'development']
 
 const database = knex(connection);
 
-export const selectGroup = async (groupId: number, isAdmin: boolean) => {
+export const selectGroup = async (groupId: number, isAdmin: boolean, userId: number) => {
     const query = database
         .table('group')
         .select('group.*', 'event.name as event_name', 'event.description as event_description', 'event.date', 'event.id as event_id',
-            'group_user.role', 'group_user.user_id', 'group_user.invite_status', 'group_user.invited_by_group', 'user.username', 'user.first_name', 'user.last_name')
+            'group_user.role', 'group_user.user_id', 'group_user.invite_status', 'group_user.invited_by_group', 'user.username', 'user.first_name', 'user.last_name',
+            'event_invitation.rsvp_status as my_rsvp')
         .leftJoin('event', function () {
             this.on('group.id', '=', 'event.group_id')
-                .andOnBetween('event.date', [DateTime.now().toISO(), DateTime.now().plus({ week: 2 }).toISO()]);
+                .andOn(database.raw(`(
+                    (event.date BETWEEN ? AND ?)
+                    OR
+                    (event.date >= ? AND EXISTS (
+                        SELECT 1 FROM event_invitation
+                        WHERE event_invitation.event_id = event.id
+                        AND event_invitation.user_id = ?
+                        AND event_invitation.rsvp_status = 1
+                    ))
+                )`, [
+                    DateTime.now().toISO(),
+                    DateTime.now().plus({ week: 2 }).toISO(),
+                    DateTime.now().toISO(),
+                    userId
+                ]));
+        })
+        .leftJoin('event_invitation', function() {
+            this.on('event.id', '=', 'event_invitation.event_id')
+                .andOn('event_invitation.user_id', '=', database.raw('?', [userId]))
         })
         .where('group.id', groupId);
 
     if (!isAdmin) {
-        query
-            .leftJoin('group_user', function () {
-                this.on('group.id', '=', 'group_user.group_id')
-                    .onIn('group_user.role', [4])
-            });
+        query.leftJoin('group_user', function () {
+            this.on('group.id', '=', 'group_user.group_id')
+                .onIn('group_user.role', [4]);
+        });
     } else {
-        query
-            .leftJoin('group_user', function () {
-                this.on('group.id', '=', 'group_user.group_id')
-                    .onIn('group_user.invite_status', [1, 2])
-            });
+        query.leftJoin('group_user', function () {
+            this.on('group.id', '=', 'group_user.group_id')
+                .onIn('group_user.invite_status', [1, 2]);
+        });
     }
 
     return query
@@ -41,7 +58,28 @@ export const selectGroup = async (groupId: number, isAdmin: boolean) => {
 export const getUserGroups = async (userId: number) => {
     return database
         .table('group')
-        .select('group.*', 'group_user.invite_status as inviteStatus', 'group_user.invited_by_group as invitedByGroup')
+        .select(
+            'group.*',
+            'group_user.invite_status as inviteStatus',
+            'group_user.invited_by_group as invitedByGroup',
+            'group_user.role',
+            database.raw(`(
+                SELECT COUNT(*)
+                FROM event_invitation
+                INNER JOIN event ON event_invitation.event_id = event.id
+                WHERE event.group_id = "group".id
+                AND event_invitation.user_id = ?
+                AND event_invitation.rsvp_status = 1
+                AND event.date >= ?
+            ) as pendingRsvpCount`, [userId, DateTime.now().toISO()]),
+            database.raw(`(
+                SELECT COUNT(*)
+                FROM group_user gu
+                WHERE gu.group_id = "group".id
+                AND gu.invite_status = 1
+                AND gu.invited_by_group = false
+            ) as pendingJoinRequestCount`)
+        )
         .leftJoin('group_user', 'group.id', 'group_user.group_id')
         .whereNotIn('group_user.invite_status', ['3', '4'])
         .andWhere('group_user.user_id', userId);

@@ -25,7 +25,20 @@ export const selectEvent = async (id: number, role: Role, userId: number) => {
 
     const events = await query;
     const myRsvp = await selectMyRsvp(id, userId);
-    return { events, host, myRsvp };
+
+    let seriesDates: string[] = [];
+    if (events[0]?.series_id) {
+        const today = new Date().toISOString().split('T')[0]!;
+        const series = await database
+            .table('event')
+            .select('date')
+            .where('series_id', events[0].series_id)
+            .andWhere('date', '>=', today)
+            .orderBy('date', 'asc');
+        seriesDates = series.map(e => e.date);
+    }
+
+    return { events, host, myRsvp, seriesDates };
 }
 
 export const selectEventHost = async (eventId: number) => {
@@ -48,7 +61,7 @@ export const selectMyRsvp = async (eventId: number, userId: number) => {
 export const selectEvents = async (userId: number) => {
     return database
         .table('event')
-        .select('event.id', 'event.name', 'event.description', 'event.date', 'event.group_id', 'group.name as group_name')
+        .select('event.id', 'event.name', 'event.description', 'event.date', 'event.group_id', 'group.name as group_name', 'event_invitation.rsvp_status')
         .leftJoin('event_invitation', 'event.id', 'event_invitation.event_id')
         .leftJoin('group', 'event.group_id', 'group.id')
         .where('event_invitation.user_id', userId)

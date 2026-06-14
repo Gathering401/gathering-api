@@ -19,7 +19,7 @@ export const getGroup = async (req: Request, res: Response) => {
 
         const [user] = await getGroupUserBy(groupId, userId);
 
-        const response = await selectGroup(groupId, [Role.admin, Role.owner].includes(user!.role));
+        const response = await selectGroup(groupId, [Role.admin, Role.owner].includes(user!.role), userId);
 
         if(!response) {
             res.status(404).json({

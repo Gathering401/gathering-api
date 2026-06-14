@@ -20,11 +20,11 @@ export const getEvent = async (req: Request, res: Response) => {
             res.status(400).json({ success: false, message: `Invalid event ID: ${req.query.eventId}` });
         }
 
-        const { events, host, myRsvp } = await selectEvent(eventId, Number(role), userId);
+        const { events, host, myRsvp, seriesDates } = await selectEvent(eventId, Number(role), userId);
 
         res.status(200).json({
             success: true,
-            response: mapDbEventToEvent(events, role, host, myRsvp)
+            response: mapDbEventToEvent(events, role, host, myRsvp, seriesDates)
         });
     } catch (err: any) {
         res.status(500).json({ success: false, error: err.message });

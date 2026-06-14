@@ -1,5 +1,5 @@
 import {User} from "../auth/User";
-import {PartialEvent} from "../event/Event";
+import {PartialEvent, Rsvp} from "../event/Event";
 import {InviteStatus} from "../common/enums/inviteStatus";
 import {Role} from "../common/enums/role";
 import _ from "lodash";
@@ -32,6 +32,7 @@ interface DbGroup extends Group {
     username: string;
     first_name: string;
     last_name: string;
+    my_rsvp: Rsvp;
 }
 
 interface GroupUser extends Omit<User, 'password' | 'email' | 'birthdate' | 'phone'> {
@@ -71,6 +72,7 @@ export const mapDbGroupToGroup = (group: DbGroup[]): GroupResponse => ({
         description: r.event_description,
         date: new Date(r.date),
         groupId: r.id,
-        groupName: r.name
-    })), 'id').filter(r => r.name)
+        groupName: r.name,
+        myRsvp: r.my_rsvp
+    })), 'id').filter(r => r.id)
 });
