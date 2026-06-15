@@ -7,6 +7,7 @@ import {
     postEvent,
     putEvent,
     putRsvp,
+    putRsvpForSeries,
     selectEvent,
     selectEvents
 } from "./repository";
@@ -116,13 +117,16 @@ export const changeRsvp = async (req: Request, res: Response) => {
         const eventId = Number(req.query.eventId);
         const rsvp = Number(req.query.rsvp) as any as Rsvp;
         const userId = Number(res.locals.userId);
+        const applyToSeries = req.query.applyToSeries === 'true';
 
-        await putRsvp(eventId, userId, rsvp);
+        if (applyToSeries) {
+            await putRsvpForSeries(eventId, userId, rsvp);
+        } else {
+            await putRsvp(eventId, userId, rsvp);
+        }
 
-        res.status(200).json({
-            success: true
-        });
+        res.status(200).json({ success: true });
     } catch (err: any) {
-        res.status(500).json({success: false, error: err.message});
+        res.status(500).json({ success: false, error: err.message });
     }
 }

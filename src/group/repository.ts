@@ -11,7 +11,7 @@ const database = knex(connection);
 export const selectGroup = async (groupId: number, isAdmin: boolean, userId: number) => {
     const query = database
         .table('group')
-        .select('group.*', 'event.name as event_name', 'event.description as event_description', 'event.date', 'event.id as event_id',
+        .select('group.*', 'event.name as event_name', 'event.description as event_description', 'event.date', 'event.id as event_id', 'event.repetition', 'event.series_id',
             'group_user.role', 'group_user.user_id', 'group_user.invite_status', 'group_user.invited_by_group', 'user.username', 'user.first_name', 'user.last_name',
             'event_invitation.rsvp_status as my_rsvp')
         .leftJoin('event', function () {

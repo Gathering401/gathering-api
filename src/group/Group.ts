@@ -3,6 +3,8 @@ import {PartialEvent, Rsvp} from "../event/Event";
 import {InviteStatus} from "../common/enums/inviteStatus";
 import {Role} from "../common/enums/role";
 import _ from "lodash";
+import {Repetition} from "../common/enums/repetition";
+import {RsvpStatus} from "../common/enums/rsvpStatus";
 
 export interface Group {
     id?: number;
@@ -25,6 +27,8 @@ interface DbGroup extends Group {
     event_name: string;
     event_description: string;
     date: string;
+    repetition: Repetition;
+    series_id: number;
     role: Role;
     invite_status: InviteStatus;
     invited_by_group: boolean;
@@ -32,7 +36,7 @@ interface DbGroup extends Group {
     username: string;
     first_name: string;
     last_name: string;
-    my_rsvp: Rsvp;
+    my_rsvp: RsvpStatus;
 }
 
 interface GroupUser extends Omit<User, 'password' | 'email' | 'birthdate' | 'phone'> {
@@ -73,6 +77,8 @@ export const mapDbGroupToGroup = (group: DbGroup[]): GroupResponse => ({
         date: new Date(r.date),
         groupId: r.id,
         groupName: r.name,
-        myRsvp: r.my_rsvp
+        myRsvp: r.my_rsvp,
+        repetition: r.repetition,
+        seriesId: Number(r.series_id)
     })), 'id').filter(r => r.id)
 });

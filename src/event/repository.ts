@@ -61,7 +61,7 @@ export const selectMyRsvp = async (eventId: number, userId: number) => {
 export const selectEvents = async (userId: number) => {
     return database
         .table('event')
-        .select('event.id', 'event.name', 'event.description', 'event.date', 'event.group_id', 'group.name as group_name', 'event_invitation.rsvp_status')
+        .select('event.id', 'event.name', 'event.description', 'event.date', 'event.group_id', 'group.name as group_name', 'event_invitation.rsvp_status', 'event.series_id', 'event.repetition')
         .leftJoin('event_invitation', 'event.id', 'event_invitation.event_id')
         .leftJoin('group', 'event.group_id', 'group.id')
         .where('event_invitation.user_id', userId)
@@ -148,5 +148,25 @@ export const putRsvp = async (eventId: number, userId: number, rsvp: Rsvp) => {
         .table('event_invitation')
         .update('rsvp_status', rsvp)
         .where('event_id', eventId)
+        .andWhere('user_id', userId);
+}
+
+export const putRsvpForSeries = async (eventId: number, userId: number, rsvp: Rsvp) => {
+    const seriesId = (await database
+        .table('event')
+        .select('series_id')
+        .where('id', eventId)
+        .first())?.series_id;
+
+    await database
+        .table('event_invitation')
+        .update('rsvp_status', rsvp)
+        .whereIn('event_id',
+            database
+                .table('event')
+                .select('id')
+                .where('series_id', seriesId)
+                .andWhere('date', '>=', new Date())
+        )
         .andWhere('user_id', userId);
 }

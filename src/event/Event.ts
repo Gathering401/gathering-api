@@ -34,6 +34,8 @@ export interface PartialEvent {
     groupId: number | undefined;
     groupName: string | undefined;
     myRsvp: RsvpStatus;
+    seriesId: number;
+    repetition: Repetition;
 }
 
 export interface Event extends PartialEvent {
@@ -41,9 +43,7 @@ export interface Event extends PartialEvent {
     host: Rsvp;
     rsvps: Rsvp[];
     cost: number;
-    seriesId?: number;
     currentRole: Role;
-    repetition: Repetition;
     seriesDates: string[]
 }
 
@@ -62,11 +62,11 @@ interface PartialDbEventGet {
     group_id: number;
     group_name: string;
     rsvp_status: RsvpStatus;
+    series_id: number;
+    repetition: Repetition;
 }
 
 export interface DbEventGet extends PartialDbEventGet {
-    series_id: string;
-    repetition: Repetition.annually;
     username: string;
     first_name: string;
     last_name: string;
@@ -108,7 +108,9 @@ export const mapDbEventsToPartialEvents = (events: PartialDbEventGet[]): Partial
     date: new Date(e.date),
     groupId: Number(e.group_id),
     groupName: e.group_name,
-    myRsvp: e.rsvp_status
+    myRsvp: e.rsvp_status,
+    seriesId: Number(e.series_id),
+    repetition: e.repetition
 }));
 
 export const mapDbEventToEvent = (events: DbEventGet[], currentRole: Role, host: any, myRsvp: RsvpStatus, seriesDates: string[] = []): Event => {
