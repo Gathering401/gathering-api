@@ -2,7 +2,7 @@ import {Request, Response} from 'express';
 import {getGroupValidator} from "./validation";
 import {Group, mapDbGroupToGroup, mapGroupToDbGroup} from "./Group";
 import {
-    deleteGroup, deleteGroupUser, getGroupUserBy, getUserGroups, getUsersBy,
+    deleteGroup, deleteGroupUser, getGroupUserBy, selectUserGroups, getUsersBy,
     postGroup,
     postUserInvite,
     putGroup,
@@ -42,7 +42,7 @@ export const getMyGroups = async (_: Request, res: Response) => {
     try {
         const userId = Number(res.locals.userId);
 
-        const response = await getUserGroups(userId);
+        const response = await selectUserGroups(userId);
 
         res.status(200).json({
             success: true,

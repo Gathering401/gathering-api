@@ -2,14 +2,22 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import {TokenUser, User} from './User';
 import {Request, Response} from 'express';
-import {deleteUser, getUser, getUserById, postUser, putUser} from "./repository";
+import {
+    postPasswordResetToken,
+    deleteUser,
+    getUser,
+    getUserById,
+    postUser,
+    putPushToken,
+    putUser, putPassword, postResetPassword
+} from "./repository";
 import {getUserValidator} from "./validation";
 import _ from "lodash";
 
-const encryptPassword = (password: string) =>
+export const encryptPassword = (password: string) =>
     crypto.createHash('sha256').update(password).digest('hex');
 
-const generateAccessToken = (username: string, userId: number) =>
+export const generateAccessToken = (username: string, userId: number) =>
     jwt.sign({ username, userId }, process.env.HASH_SECRET as string, { expiresIn: '24h' });
 
 export const verifyAccessToken = (accessToken: string): TokenUser | null => {
@@ -119,6 +127,50 @@ export const getProfile = async (__: Request, res: Response) => {
             success: true,
             user: _.omit(user, 'password')
         });
+    } catch (err: any) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+}
+
+export const updatePushToken = async (req: Request, res: Response) => {
+    try {
+        const userId = res.locals.userId;
+        const { pushToken } = req.body;
+
+        await putPushToken(userId, pushToken);
+
+        res.status(200).json({ success: true });
+    } catch (err: any) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+}
+
+export const forgotPassword = async (req: Request, res: Response) => {
+    try {
+        const { email } = req.body;
+        await postPasswordResetToken(email);
+        res.status(200).json({ success: true });
+    } catch (err: any) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+}
+
+export const resetPassword = async (req: Request, res: Response) => {
+    try {
+        const { token, newPassword } = req.body;
+        await postResetPassword(token, newPassword);
+        res.status(200).json({ success: true });
+    } catch (err: any) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+}
+
+export const changePassword = async (req: Request, res: Response) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const { userId } = res.locals;
+        await putPassword(userId, currentPassword, newPassword);
+        res.status(200).json({ success: true });
     } catch (err: any) {
         res.status(500).json({ success: false, error: err.message });
     }

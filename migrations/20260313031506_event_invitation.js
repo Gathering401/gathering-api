@@ -16,6 +16,7 @@ exports.up = function(knex) {
             useConstraint: true,
         });
         table.integer('rsvp_status').references('rsvp_status.id').defaultTo(1);
+        table.boolean('notifications').notNullable().defaultTo(true);
     });
 };
 

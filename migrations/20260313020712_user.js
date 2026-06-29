@@ -12,6 +12,7 @@ exports.up = function(knex) {
         table.string('password');
         table.string('phone', 15);
         table.date('birthdate');
+        table.string('expo_push_token').nullable();
     });
 };
 

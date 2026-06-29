@@ -5,7 +5,7 @@ import {
     deleteSeriesEvent,
     deleteSingleEvent,
     postEvent,
-    putEvent,
+    putEvent, putNotifications,
     putRsvp,
     putRsvpForSeries,
     selectEvent,
@@ -21,11 +21,11 @@ export const getEvent = async (req: Request, res: Response) => {
             res.status(400).json({ success: false, message: `Invalid event ID: ${req.query.eventId}` });
         }
 
-        const { events, host, myRsvp, seriesDates } = await selectEvent(eventId, Number(role), userId);
+        const { events, host, myRsvp, myNotifications, seriesDates } = await selectEvent(eventId, Number(role), userId);
 
         res.status(200).json({
             success: true,
-            response: mapDbEventToEvent(events, role, host, myRsvp, seriesDates)
+            response: mapDbEventToEvent(events, role, host, myRsvp, myNotifications, seriesDates)
         });
     } catch (err: any) {
         res.status(500).json({ success: false, error: err.message });
@@ -53,13 +53,12 @@ export const createEvent = async (req: Request, res: Response) => {
 
         try {
             const validator = getEventValidator();
-
             await validator.validate(event);
         } catch (error) {
             return res.status(400).json({error: 'Invalid input', details: error});
         }
 
-        const [response] = await postEvent(event);
+        const response = await postEvent(event);
 
         res.status(201).json({
             success: true,
@@ -77,7 +76,6 @@ export const updateEvent = async (req: Request, res: Response) => {
 
         try {
             const validator = seriesId ? getUpdateSeriesValidator() : getUpdateEventValidator();
-
             await validator.validate(event);
         } catch (error) {
             return res.status(400).json({ error: 'Invalid input', details: error });
@@ -124,6 +122,19 @@ export const changeRsvp = async (req: Request, res: Response) => {
         } else {
             await putRsvp(eventId, userId, rsvp);
         }
+
+        res.status(200).json({ success: true });
+    } catch (err: any) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+}
+
+export const updateNotifications = async (req: Request, res: Response) => {
+    try {
+        const { eventId, notifications } = req.body;
+        const userId = res.locals.userId;
+
+        await putNotifications(eventId, userId, notifications);
 
         res.status(200).json({ success: true });
     } catch (err: any) {

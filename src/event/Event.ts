@@ -44,7 +44,8 @@ export interface Event extends PartialEvent {
     rsvps: Rsvp[];
     cost: number;
     currentRole: Role;
-    seriesDates: string[]
+    seriesDates: string[];
+    myNotifications: boolean;
 }
 
 export interface Rsvp {
@@ -113,7 +114,7 @@ export const mapDbEventsToPartialEvents = (events: PartialDbEventGet[]): Partial
     repetition: e.repetition
 }));
 
-export const mapDbEventToEvent = (events: DbEventGet[], currentRole: Role, host: any, myRsvp: RsvpStatus, seriesDates: string[] = []): Event => {
+export const mapDbEventToEvent = (events: DbEventGet[], currentRole: Role, host: any, myRsvp: RsvpStatus, myNotifications: boolean, seriesDates: string[] = []): Event => {
     const rsvps = _.uniqBy(events.map((invitation: DbEventGet): Rsvp => ({
         userId: Number(invitation.user_id),
         rsvp: invitation.rsvp_status,
@@ -143,6 +144,7 @@ export const mapDbEventToEvent = (events: DbEventGet[], currentRole: Role, host:
         repetition: event.repetition,
         currentRole,
         myRsvp,
+        myNotifications,
         seriesDates
     }
 }

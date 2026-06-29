@@ -19,7 +19,7 @@ export const selectGroup = async (groupId: number, isAdmin: boolean, userId: num
                 .andOn(database.raw(`(
                     (event.date BETWEEN ? AND ?)
                     OR
-                    (event.date >= ? AND EXISTS (
+                    (event.date BETWEEN ? AND ? AND EXISTS (
                         SELECT 1 FROM event_invitation
                         WHERE event_invitation.event_id = event.id
                         AND event_invitation.user_id = ?
@@ -29,6 +29,7 @@ export const selectGroup = async (groupId: number, isAdmin: boolean, userId: num
                     DateTime.now().toISO(),
                     DateTime.now().plus({ week: 2 }).toISO(),
                     DateTime.now().toISO(),
+                    DateTime.now().plus({ week: 6 }).toISO(),
                     userId
                 ]));
         })
@@ -55,7 +56,7 @@ export const selectGroup = async (groupId: number, isAdmin: boolean, userId: num
         .leftJoin('user', 'group_user.user_id', 'user.id');
 }
 
-export const getUserGroups = async (userId: number) => {
+export const selectUserGroups = async (userId: number) => {
     return database
         .table('group')
         .select(
@@ -78,11 +79,23 @@ export const getUserGroups = async (userId: number) => {
                 WHERE gu.group_id = "group".id
                 AND gu.invite_status = 1
                 AND gu.invited_by_group = false
-            ) as pendingJoinRequestCount`)
+            ) as pendingJoinRequestCount`),
+            database.raw(`(
+                SELECT MIN(event.date)
+                FROM event
+                INNER JOIN event_invitation ON event_invitation.event_id = event.id
+                WHERE event.group_id = "group".id
+                AND event_invitation.user_id = ?
+                AND event.date >= ?
+            ) as nextEventDate`, [userId, DateTime.now().toISO()])
         )
         .leftJoin('group_user', 'group.id', 'group_user.group_id')
         .whereNotIn('group_user.invite_status', ['3', '4'])
-        .andWhere('group_user.user_id', userId);
+        .andWhere('group_user.user_id', userId)
+        .orderByRaw(`
+            CASE WHEN group_user.invite_status = 1 AND group_user.invited_by_group = true THEN 0 ELSE 1 END ASC,
+            nextEventDate ASC NULLS LAST
+        `);
 }
 
 export const selectAvailableGroups = async (searchString?: string, userId?: number) => {

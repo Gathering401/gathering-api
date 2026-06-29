@@ -2,6 +2,7 @@ import knex from 'knex';
 import {EventPost, EventPutMulti, EventPutSingle, mapEventPostToDbEvent, Rsvp} from "./Event";
 import {Role} from "../common/enums/role";
 import _ from "lodash";
+import {scheduleEventNotifications} from "../notifications";
 
 const connection = require('../knexfile')[process.env.NODE_ENV || 'development'];
 
@@ -25,6 +26,7 @@ export const selectEvent = async (id: number, role: Role, userId: number) => {
 
     const events = await query;
     const myRsvp = await selectMyRsvp(id, userId);
+    const myNotifications = await selectMyNotifications(id, userId);
 
     let seriesDates: string[] = [];
     if (events[0]?.series_id) {
@@ -38,7 +40,15 @@ export const selectEvent = async (id: number, role: Role, userId: number) => {
         seriesDates = series.map(e => e.date);
     }
 
-    return { events, host, myRsvp, seriesDates };
+    return { events, host, myRsvp, myNotifications, seriesDates };
+}
+
+const selectMyNotifications = async (eventId: number, userId: number) => {
+    const [row] = await database('event_invitation')
+        .select('notifications')
+        .where('event_id', eventId)
+        .where('user_id', userId);
+    return row?.notifications ?? true;
 }
 
 export const selectEventHost = async (eventId: number) => {
@@ -92,14 +102,17 @@ export const postEvent = async (event: EventPost) => {
             rsvp_status: u.user_id == event.hostId ? 2 : 1,
         }))).flat());
 
+    for (const row of response) {
+        await scheduleEventNotifications(row.id);
+    }
+
     return response;
 }
 
 export const putEvent = async (event: EventPutMulti | EventPutSingle, seriesId?: number) => {
-    const query = database
-        .table('event');
+    const query = database.table('event');
 
-    if(seriesId) {
+    if (seriesId) {
         query
             .update(_.omit(event, 'id'))
             .where('series_id', seriesId);
@@ -110,6 +123,14 @@ export const putEvent = async (event: EventPutMulti | EventPutSingle, seriesId?:
     }
 
     await query;
+
+    const affected = seriesId
+        ? await database('event').select('id').where('series_id', seriesId)
+        : [{ id: (event as EventPutSingle).id }];
+
+    for (const row of affected) {
+        await scheduleEventNotifications(row.id);
+    }
 }
 
 export const deleteSingleEvent = async (eventId: number) => {
@@ -169,4 +190,11 @@ export const putRsvpForSeries = async (eventId: number, userId: number, rsvp: Rs
                 .andWhere('date', '>=', new Date())
         )
         .andWhere('user_id', userId);
+}
+
+export const putNotifications = async (eventId: number, userId: number, notifications: boolean) => {
+    await database('event_invitation')
+        .update({ notifications })
+        .where('event_id', eventId)
+        .where('user_id', userId);
 }
