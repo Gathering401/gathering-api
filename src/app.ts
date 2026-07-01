@@ -5,6 +5,7 @@ require('dotenv').config();
 import authRoutes from './auth/routes';
 import groupRoutes from './group/routes';
 import eventRoutes from './event/routes';
+import businessRoutes from './business/routes';
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.get('/status', (_, res) => {
 app.use('/', authRoutes);
 app.use('/group', groupRoutes);
 app.use('/event', eventRoutes);
+app.use('/business', businessRoutes);
 
 app.use((err: Error, _: Request, res: Response, __: NextFunction) => {
     console.error(err.stack);
