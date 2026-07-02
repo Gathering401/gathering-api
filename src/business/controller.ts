@@ -1,8 +1,14 @@
 import jwt from 'jsonwebtoken';
 
 import {Request, Response} from 'express';
-import {getBusinessByEmail, postBusiness} from "./repository";
+import {
+    getBusinessByEmail,
+    getBusinessInvitationsByBusinessId,
+    postBusiness,
+    postBusinessInvitation
+} from "./repository";
 import {encryptPassword} from "../auth/controller";
+import {mapDbBusinessInvitationToBusinessInvitation, mapRequestBodyToBusinessInvitation} from "./Business";
 
 export const generateBusinessAccessToken = (businessId: number, contactEmail: string) =>
     jwt.sign({ type: 'business', businessId, contactEmail }, process.env.HASH_SECRET as string, { expiresIn: '24h' });
@@ -76,6 +82,37 @@ export const loginBusiness = async (req: Request, res: Response) => {
                 contactPhone: business.contact_phone
             },
             accessToken
+        });
+    } catch (err: any) {
+        res.status(500).json({success: false, error: err.message});
+    }
+}
+
+export const createInvitation = async (req: Request, res: Response) => {
+    try {
+        const businessInvitation = mapRequestBodyToBusinessInvitation(res.locals.businessId, req.body);
+
+        const [invitation] = await postBusinessInvitation(businessInvitation);
+
+        res.status(201).json({
+            success: true,
+            response: mapDbBusinessInvitationToBusinessInvitation(invitation)
+        });
+    } catch (err: any) {
+        res.status(500).json({success: false, error: err.message});
+    }
+}
+
+export const listInvitations = async (req: Request, res: Response) => {
+    try {
+        const businessId = res.locals.businessId;
+        const status = req.query.status ? Number(req.query.status) : undefined;
+
+        const invitations = await getBusinessInvitationsByBusinessId(businessId, status);
+
+        res.status(200).json({
+            success: true,
+            response: invitations.map(mapDbBusinessInvitationToBusinessInvitation)
         });
     } catch (err: any) {
         res.status(500).json({success: false, error: err.message});

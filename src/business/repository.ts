@@ -1,4 +1,9 @@
 import knex from 'knex';
+import {
+    BusinessInvitation,
+    mapBusinessInvitationToDbBusinessInvitation,
+    mapDbBusinessInvitationToBusinessInvitation
+} from "./Business";
 
 const connection = require('../knexfile')[process.env.NODE_ENV || 'development'];
 
@@ -26,4 +31,25 @@ export const postBusiness = async (name: string, category: string, contactEmail:
         .returning(['id', 'name', 'category', 'contact_email', 'contact_phone']);
 
     return response;
+}
+
+export const postBusinessInvitation = async (invitation: BusinessInvitation) => {
+    return database
+        .table('business_invitation')
+        .insert(mapBusinessInvitationToDbBusinessInvitation(invitation))
+        .returning('*');
+}
+
+export const getBusinessInvitationsByBusinessId = async (businessId: number, status?: number) => {
+    const query = database
+        .table('business_invitation')
+        .select('*')
+        .where('business_id', businessId)
+        .orderBy('id', 'desc');
+
+    if (status) {
+        query.andWhere('status', status);
+    }
+
+    return query;
 }
