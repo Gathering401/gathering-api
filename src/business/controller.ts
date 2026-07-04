@@ -8,7 +8,7 @@ import {
     postBusinessInvitation
 } from "./repository";
 import {encryptPassword} from "../auth/controller";
-import {mapDbBusinessInvitationToBusinessInvitation, mapRequestBodyToBusinessInvitation} from "./Business";
+import {Business, mapDbBusinessInvitationToBusinessInvitation, mapRequestBodyToBusinessInvitation} from "./Business";
 
 export const generateBusinessAccessToken = (businessId: number, contactEmail: string) =>
     jwt.sign({ type: 'business', businessId, contactEmail }, process.env.HASH_SECRET as string, { expiresIn: '24h' });
@@ -30,7 +30,7 @@ export const verifyBusinessAccessToken = (accessToken: string) => {
 
 export const signupBusiness = async (req: Request, res: Response) => {
     try {
-        const {name, category, contactEmail, contactPhone, password} = req.body;
+        const {name, category, contactEmail, contactPhone, password} = req.body as Business;
 
         const existing = await getBusinessByEmail(contactEmail);
 

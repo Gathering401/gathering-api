@@ -1,5 +1,13 @@
 import {BusinessInvitationStatus} from "../common/enums/businessInvitationStatus";
 
+export interface Business {
+    name: string;
+    category: string;
+    contactEmail: string;
+    contactPhone: string | null;
+    password: string;
+}
+
 export interface BusinessInvitation {
     id?: number;
     businessId: number;
