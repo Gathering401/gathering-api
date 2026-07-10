@@ -1,4 +1,6 @@
 import {BusinessInvitationStatus} from "../common/enums/businessInvitationStatus";
+import {Timeframe} from "../common/enums/timeframe";
+import {BusinessInvitationResponse} from "../common/enums/businessInvitationResponse";
 
 export interface Business {
     name: string;
@@ -41,6 +43,41 @@ export interface DbBusinessInvitationPost {
 interface DbBusinessInvitation extends DbBusinessInvitationPost {
     id: number;
     status: BusinessInvitationStatus;
+}
+
+interface BusinessInvitationRecipient {
+    businessInvitationId: number;
+    response: BusinessInvitationResponse;
+    respondedAt: Date;
+    createdAt: Date;
+}
+
+interface DbBusinessInvitationRecipient {
+    business_invitation_id: number;
+    response: BusinessInvitationResponse;
+    responded_at: string;
+    created_at: string;
+}
+
+export interface Analytics {
+    pushNotificationsCreated: InvitationDetails;
+    calendarInvitationsCreated: InvitationDetails;
+}
+
+export interface InvitationDetails {
+    usersReached: number;
+    eventsCreated: number;
+    usersRejected: number;
+    rsvpsAccepted: number;
+    totalCost?: number;
+    totalProjectedCost?: number;
+}
+
+export interface DbAnalytics {
+    as_push_notification: boolean;
+    response: number;
+    count: number;
+    rsvpsAccepted: number;
 }
 
 export const mapBusinessInvitationToDbBusinessInvitation = (invitation: BusinessInvitation): DbBusinessInvitationPost => ({
@@ -86,3 +123,48 @@ export const mapRequestBodyToBusinessInvitation = (businessId: number, body: any
     keywords: body.keywords ?? null,
     groupTypeSignal: body.groupTypeSignal ?? null
 });
+
+export const mapToAnalytics = (analytics: DbAnalytics[] | DbAnalytics): Analytics => {
+    if(!Array.isArray(analytics)) {
+        analytics = [analytics];
+    }
+
+    const pushNotificationsCreated: InvitationDetails = {
+        usersReached: 0,
+        eventsCreated: 0,
+        usersRejected: 0,
+        rsvpsAccepted: 0
+    }
+    const calendarInvitationsCreated: InvitationDetails = {
+        usersReached: 0,
+        eventsCreated: 0,
+        usersRejected: 0,
+        rsvpsAccepted: 0
+    }
+
+    for(const row of analytics) {
+        const isPush = row.as_push_notification;
+
+        if (isPush) {
+            pushNotificationsCreated.usersReached += Number(row.count);
+
+            if (row.response === BusinessInvitationResponse.Accepted) {
+                pushNotificationsCreated.eventsCreated += Number(row.count);
+                pushNotificationsCreated.rsvpsAccepted += Number(row.rsvpsAccepted);
+            } else {
+                pushNotificationsCreated.usersRejected += Number(row.count);
+            }
+        } else {
+            calendarInvitationsCreated.usersReached += Number(row.count);
+
+            if (row.response === BusinessInvitationResponse.Accepted) {
+                calendarInvitationsCreated.eventsCreated += Number(row.count);
+                calendarInvitationsCreated.rsvpsAccepted += Number(row.rsvpsAccepted);
+            } else {
+                calendarInvitationsCreated.usersRejected += Number(row.count);
+            }
+        }
+    }
+
+    return { pushNotificationsCreated, calendarInvitationsCreated }
+}

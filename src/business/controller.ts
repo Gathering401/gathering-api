@@ -5,10 +5,14 @@ import {
     getBusinessByEmail,
     getBusinessInvitationsByBusinessId,
     postBusiness,
-    postBusinessInvitation
+    postBusinessInvitation, selectAnalytics, selectCompareIds
 } from "./repository";
 import {encryptPassword} from "../auth/controller";
-import {Business, mapDbBusinessInvitationToBusinessInvitation, mapRequestBodyToBusinessInvitation} from "./Business";
+import {
+    Business, DbAnalytics,
+    mapDbBusinessInvitationToBusinessInvitation,
+    mapRequestBodyToBusinessInvitation, mapToAnalytics
+} from "./Business";
 
 export const generateBusinessAccessToken = (businessId: number, contactEmail: string) =>
     jwt.sign({ type: 'business', businessId, contactEmail }, process.env.HASH_SECRET as string, { expiresIn: '24h' });
@@ -113,6 +117,36 @@ export const listInvitations = async (req: Request, res: Response) => {
         res.status(200).json({
             success: true,
             response: invitations.map(mapDbBusinessInvitationToBusinessInvitation)
+        });
+    } catch (err: any) {
+        res.status(500).json({success: false, error: err.message});
+    }
+}
+
+export const getAnalytics = async (req: Request, res: Response) => {
+    try {
+        const { invitationId, timeframe } = req.query;
+
+        if(!invitationId) {
+            res.status(400).json({
+                success: false,
+                error: 'Missing invitation ID'
+            });
+        }
+
+        const response = await selectAnalytics([Number(invitationId)]) as any as DbAnalytics[];
+        let previous: DbAnalytics[][] = [];
+        if(timeframe) {
+            const ids = await selectCompareIds(Number(invitationId), Number(timeframe));
+            previous = await selectAnalytics(ids.map(({id}) => id)) as any as DbAnalytics[][];
+        }
+
+        res.status(200).json({
+            success: true,
+            response: {
+                current: mapToAnalytics(response),
+                previous: previous.map(mapToAnalytics)
+            }
         });
     } catch (err: any) {
         res.status(500).json({success: false, error: err.message});
