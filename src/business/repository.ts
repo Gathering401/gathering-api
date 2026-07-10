@@ -96,10 +96,10 @@ export const selectAnalytics = async (invitationIds: number[]) => {
         .leftJoin('event_invitation as i', function () {
             this.on('i.event_id', '=', 'e.id').andOn('i.rsvp_status', '=', database.raw('2'));
         })
-        .select('r.as_push_notification', 'r.response')
+        .select('r.as_push_notification', 'r.response', 'r.business_invitation_id')
         .count('r.id as count')
         .count('i.user_id AS rsvpsAccepted')
         .whereIn('r.business_invitation_id', invitationIds)
-        .groupBy('r.as_push_notification', 'r.response')
-        .orderBy(['r.as_push_notification', 'r.response']);
+        .groupBy('r.business_invitation_id', 'r.as_push_notification', 'r.response')
+        .orderBy(['r.business_invitation_id', 'r.as_push_notification', 'r.response']);
 }

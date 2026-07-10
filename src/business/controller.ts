@@ -135,17 +135,23 @@ export const getAnalytics = async (req: Request, res: Response) => {
         }
 
         const response = await selectAnalytics([Number(invitationId)]) as any as DbAnalytics[];
-        let previous: DbAnalytics[][] = [];
+
+        let previous: DbAnalytics[] = [];
         if(timeframe) {
             const ids = await selectCompareIds(Number(invitationId), Number(timeframe));
-            previous = await selectAnalytics(ids.map(({id}) => id)) as any as DbAnalytics[][];
+            previous = await selectAnalytics(ids.map(({id}) => id)) as any as DbAnalytics[];
+        }
+
+        const previousMapped = [];
+        for(let i = 0; i < previous.length; i+=2) {
+            previousMapped.push(previous.slice(i, i+2));
         }
 
         res.status(200).json({
             success: true,
             response: {
                 current: mapToAnalytics(response),
-                previous: previous.map(mapToAnalytics)
+                previous: previousMapped.map(mapToAnalytics)
             }
         });
     } catch (err: any) {
