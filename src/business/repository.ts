@@ -6,6 +6,7 @@ import {
 import {BusinessInvitationStatus} from "../common/enums/businessInvitationStatus";
 import {getDateBy, Timeframe} from "../common/enums/timeframe";
 import {DateTime} from "luxon";
+import {RsvpStatus} from "../common/enums/rsvpStatus";
 
 const connection = require('../knexfile')[process.env.NODE_ENV || 'development'];
 
@@ -94,7 +95,7 @@ export const selectAnalytics = async (invitationIds: number[]) => {
     return database('business_invitation_recipient as r')
         .leftJoin('event as e', 'e.business_invitation_id', 'r.business_invitation_id')
         .leftJoin('event_invitation as i', function () {
-            this.on('i.event_id', '=', 'e.id').andOn('i.rsvp_status', '=', database.raw('2'));
+            this.on('i.event_id', '=', 'e.id').andOn('i.rsvp_status', '=', String(RsvpStatus.accepted));
         })
         .select('r.as_push_notification', 'r.response', 'r.business_invitation_id')
         .count('r.id as count')

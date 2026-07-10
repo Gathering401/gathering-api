@@ -4,6 +4,8 @@ exports.up = function(knex) {
         table.bigint('business_id')
             .references('business.id')
             .onDelete('CASCADE');
+        table.string('name', 100).notNullable();
+        table.text('description').notNullable();
         table.integer('status')
             .references('business_invitation_status.id')
             .defaultTo(1);

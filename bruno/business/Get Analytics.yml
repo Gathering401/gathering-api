@@ -5,8 +5,17 @@ info:
 
 http:
   method: GET
-  url: ""
-  auth: inherit
+  url: http://localhost:3000/business/analytics?invitationId=1&timeframe=2
+  params:
+    - name: invitationId
+      value: "1"
+      type: query
+    - name: timeframe
+      value: "2"
+      type: query
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYnVzaW5lc3MiLCJidXNpbmVzc0lkIjoxLCJjb250YWN0RW1haWwiOiJzdHJ1dmVzYnVyZ3NAZXhhbXBsZS5jb20iLCJpYXQiOjE3ODM2NTEyNzIsImV4cCI6MTc4MzczNzY3Mn0.uP88SOusSXT6WFfr13y4aepn9W4w1MM_bf4wGBkKnek
 
 settings:
   encodeUrl: true

@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 
-import {Request, Response} from 'express';
+import {NextFunction, Request, Response} from 'express';
 import {
     getBusinessByEmail,
     getBusinessInvitationsByBusinessId,
@@ -123,7 +123,7 @@ export const listInvitations = async (req: Request, res: Response) => {
     }
 }
 
-export const getAnalytics = async (req: Request, res: Response) => {
+export const getAnalytics = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { invitationId, timeframe } = req.query;
 
@@ -132,6 +132,7 @@ export const getAnalytics = async (req: Request, res: Response) => {
                 success: false,
                 error: 'Missing invitation ID'
             });
+            next();
         }
 
         const response = await selectAnalytics([Number(invitationId)]) as any as DbAnalytics[];

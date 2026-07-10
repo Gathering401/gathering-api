@@ -5,7 +5,7 @@ exports.up = function(knex) {
 };
 
 exports.down = function(knex) {
-    return knex.schema.alterTable('event', table => {
+    return knex.schema.alterTable('business_invitation_recipient', table => {
         table.dropColumn('as_push_notification');
     });
 };

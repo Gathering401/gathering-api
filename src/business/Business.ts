@@ -1,5 +1,4 @@
 import {BusinessInvitationStatus} from "../common/enums/businessInvitationStatus";
-import {Timeframe} from "../common/enums/timeframe";
 import {BusinessInvitationResponse} from "../common/enums/businessInvitationResponse";
 
 export interface Business {
@@ -12,6 +11,8 @@ export interface Business {
 
 export interface BusinessInvitation {
     id?: number;
+    name: string;
+    description: string;
     businessId: number;
     status?: BusinessInvitationStatus;
     groupSizeMin: number;
@@ -28,6 +29,8 @@ export interface BusinessInvitation {
 
 export interface DbBusinessInvitationPost {
     business_id: number;
+    name: string;
+    description: string;
     group_size_min: number;
     group_size_max: number;
     location_radius_miles: number | null;
@@ -60,6 +63,8 @@ interface DbBusinessInvitationRecipient {
 }
 
 export interface Analytics {
+    id: number;
+    name: string;
     pushNotificationsCreated: InvitationDetails;
     calendarInvitationsCreated: InvitationDetails;
 }
@@ -74,6 +79,8 @@ export interface InvitationDetails {
 }
 
 export interface DbAnalytics {
+    business_invitation_id: number;
+    name: string;
     as_push_notification: boolean;
     response: number;
     count: number;
@@ -82,6 +89,8 @@ export interface DbAnalytics {
 
 export const mapBusinessInvitationToDbBusinessInvitation = (invitation: BusinessInvitation): DbBusinessInvitationPost => ({
     business_id: invitation.businessId,
+    name: invitation.name,
+    description: invitation.description,
     group_size_min: invitation.groupSizeMin,
     group_size_max: invitation.groupSizeMax,
     location_radius_miles: invitation.locationRadiusMiles,
@@ -96,6 +105,8 @@ export const mapBusinessInvitationToDbBusinessInvitation = (invitation: Business
 
 export const mapDbBusinessInvitationToBusinessInvitation = (invitation: DbBusinessInvitation): BusinessInvitation => ({
     id: invitation.id,
+    name: invitation.name,
+    description: invitation.description,
     businessId: Number(invitation.business_id),
     status: invitation.status,
     groupSizeMin: invitation.group_size_min,
@@ -112,6 +123,8 @@ export const mapDbBusinessInvitationToBusinessInvitation = (invitation: DbBusine
 
 export const mapRequestBodyToBusinessInvitation = (businessId: number, body: any): BusinessInvitation => ({
     businessId,
+    name: body.name,
+    description: body.description,
     groupSizeMin: body.groupSizeMin,
     groupSizeMax: body.groupSizeMax,
     locationRadiusMiles: body.locationRadiusMiles ?? null,
@@ -151,7 +164,7 @@ export const mapToAnalytics = (analytics: DbAnalytics[] | DbAnalytics): Analytic
             if (row.response === BusinessInvitationResponse.Accepted) {
                 pushNotificationsCreated.eventsCreated += Number(row.count);
                 pushNotificationsCreated.rsvpsAccepted += Number(row.rsvpsAccepted);
-            } else {
+            } else if(row.response === BusinessInvitationResponse.Rejected) {
                 pushNotificationsCreated.usersRejected += Number(row.count);
             }
         } else {
@@ -160,11 +173,16 @@ export const mapToAnalytics = (analytics: DbAnalytics[] | DbAnalytics): Analytic
             if (row.response === BusinessInvitationResponse.Accepted) {
                 calendarInvitationsCreated.eventsCreated += Number(row.count);
                 calendarInvitationsCreated.rsvpsAccepted += Number(row.rsvpsAccepted);
-            } else {
+            } else if(row.response === BusinessInvitationResponse.Rejected) {
                 calendarInvitationsCreated.usersRejected += Number(row.count);
             }
         }
     }
 
-    return { pushNotificationsCreated, calendarInvitationsCreated }
+    return {
+        id: analytics[0]!.business_invitation_id,
+        name: analytics[0]!.name,
+        pushNotificationsCreated,
+        calendarInvitationsCreated
+    }
 }

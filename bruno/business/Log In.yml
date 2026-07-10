@@ -4,8 +4,15 @@ info:
   seq: 2
 
 http:
-  method: GET
-  url: ""
+  method: POST
+  url: http://localhost:3000/business/login
+  body:
+    type: json
+    data: |-
+      {
+        "contactEmail": "struvesburgs@example.com",
+        "password": "P@ssw0rd"
+      }
   auth: inherit
 
 settings:

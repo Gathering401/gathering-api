@@ -9,6 +9,6 @@ router.post('/login', loginBusiness);
 
 router.post('/invitations', isBusinessAuthenticated, createInvitation);
 router.get('/invitations', isBusinessAuthenticated, listInvitations);
-router.get('/analytics', isBusinessAuthenticated, getAnalytics)
+router.get('/analytics', isBusinessAuthenticated, getAnalytics);
 
 export default router;
