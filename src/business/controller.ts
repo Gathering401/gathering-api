@@ -1,15 +1,24 @@
 import jwt from 'jsonwebtoken';
 
-import {NextFunction, Request, Response} from 'express';
+import {Request, Response} from 'express';
 import {
     getBusinessByEmail,
     getBusinessInvitationsByBusinessId,
     postBusiness,
-    postBusinessInvitation, selectAnalytics, selectCompareIds
+    postBusinessInvitation,
+    selectAnalytics,
+    selectCompareIds,
+    demoteActiveInvitations,
+    gatherUsers,
+    gatherCampaigns,
+    getUserBeenInvited,
+    getEligibleGroupsForUser,
+    createBusinessInvitationRecipient,
+    isUserWithinInvitationRadius
 } from "./repository";
 import {encryptPassword} from "../auth/controller";
 import {
-    Business, DbAnalytics,
+    Business, CampaignMatch, DbAnalytics,
     mapDbBusinessInvitationToBusinessInvitation,
     mapRequestBodyToBusinessInvitation, mapToAnalytics
 } from "./Business";
@@ -123,16 +132,15 @@ export const listInvitations = async (req: Request, res: Response) => {
     }
 }
 
-export const getAnalytics = async (req: Request, res: Response, next: NextFunction) => {
+export const getAnalytics = async (req: Request, res: Response) => {
     try {
         const { invitationId, timeframe } = req.query;
 
         if(!invitationId) {
-            res.status(400).json({
+            return res.status(400).json({
                 success: false,
                 error: 'Missing invitation ID'
             });
-            next();
         }
 
         const response = await selectAnalytics([Number(invitationId)]) as any as DbAnalytics[];
@@ -157,5 +165,45 @@ export const getAnalytics = async (req: Request, res: Response, next: NextFuncti
         });
     } catch (err: any) {
         res.status(500).json({success: false, error: err.message});
+    }
+}
+
+export const createInvitations = async () => {
+    await demoteActiveInvitations();
+
+    const users = await gatherUsers();
+    const campaigns = await gatherCampaigns();
+
+    const matchingCampaigns = new Map<number, CampaignMatch[]>();
+
+    for (const user of users) {
+        const currentMatches = matchingCampaigns.get(user.id) ?? [];
+
+        for (const campaign of campaigns) {
+            const alreadyBeenInvited = await getUserBeenInvited(campaign.id!, user.id);
+            if (alreadyBeenInvited) continue;
+
+            const groupCount = await getEligibleGroupsForUser(user.id, campaign);
+            if (!groupCount) continue;
+
+            const isDistanceEligible = await isUserWithinInvitationRadius(user.id, campaign.id!);
+            if (!isDistanceEligible) continue;
+
+            currentMatches.push({ id: campaign.id!, groupCount });
+        }
+
+        currentMatches.sort((a, b) => b.groupCount - a.groupCount);
+        matchingCampaigns.set(user.id, currentMatches);
+    }
+
+    const sortedUsers = Array.from(matchingCampaigns).sort((a, b) => a[1].length - b[1].length);
+
+    for (const [userId, matches] of sortedUsers) {
+        if (!matches.length) continue;
+
+        const topMatches = matches.slice(0, 3);
+        for (const [index, match] of topMatches.entries()) {
+            await createBusinessInvitationRecipient(match.id, userId, index + 1);
+        }
     }
 }

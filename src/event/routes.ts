@@ -3,6 +3,8 @@ import {
     cancelEvent,
     changeRsvp,
     createEvent,
+    declineInvitation,
+    getActiveInvitations,
     getEvent,
     getEvents,
     updateEvent,
@@ -21,5 +23,7 @@ router.put('/', isInGroup, isAdminOrHost, updateEvent);
 router.delete('/', isInGroup, isAdminOrHost, cancelEvent);
 router.put('/rsvp', isInGroup, changeRsvp);
 router.put('/notifications', isInGroup, updateNotifications);
+router.get('/invitations', getActiveInvitations);
+router.put('/invitations/decline', declineInvitation);
 
 export default router;

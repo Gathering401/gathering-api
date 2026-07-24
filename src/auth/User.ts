@@ -7,6 +7,7 @@ export interface User {
     lastName: string;
     birthdate: string;
     phone: string;
+    zipCode: string;
 }
 
 interface DbUser {
@@ -17,6 +18,7 @@ interface DbUser {
     last_name: string;
     birthdate: string;
     phone: string;
+    zip_code: string;
 }
 
 export interface TokenUser {
@@ -31,5 +33,6 @@ export const mapUserToDb = (user: User): DbUser => ({
     email: user.email,
     password: user.password,
     birthdate: user.birthdate,
-    phone: user.phone
+    phone: user.phone,
+    zip_code: user.zipCode
 });

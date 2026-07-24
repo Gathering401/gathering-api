@@ -1,12 +1,15 @@
 import knex from 'knex';
 import {
     BusinessInvitation,
-    mapBusinessInvitationToDbBusinessInvitation
+    mapBusinessInvitationToDbBusinessInvitation,
+    mapDbBusinessInvitationToBusinessInvitation
 } from "./Business";
 import {BusinessInvitationStatus} from "../common/enums/businessInvitationStatus";
 import {getDateBy, Timeframe} from "../common/enums/timeframe";
 import {DateTime} from "luxon";
 import {RsvpStatus} from "../common/enums/rsvpStatus";
+import {milesBetween} from "../common/utils/haversineCalculator";
+import {BusinessInvitationResponse} from "../common/enums/businessInvitationResponse";
 
 const connection = require('../knexfile')[process.env.NODE_ENV || 'development'];
 
@@ -95,7 +98,7 @@ export const selectAnalytics = async (invitationIds: number[]) => {
     return database('business_invitation_recipient as r')
         .leftJoin('event as e', 'e.business_invitation_id', 'r.business_invitation_id')
         .leftJoin('event_invitation as i', function () {
-            this.on('i.event_id', '=', 'e.id').andOn('i.rsvp_status', '=', String(RsvpStatus.accepted));
+            this.on('i.event_id', '=', 'e.id').andOn('i.rsvp_status', '=', database.raw(RsvpStatus.accepted));
         })
         .select('r.as_push_notification', 'r.response', 'r.business_invitation_id')
         .count('r.id as count')
@@ -103,4 +106,130 @@ export const selectAnalytics = async (invitationIds: number[]) => {
         .whereIn('r.business_invitation_id', invitationIds)
         .groupBy('r.business_invitation_id', 'r.as_push_notification', 'r.response')
         .orderBy(['r.business_invitation_id', 'r.as_push_notification', 'r.response']);
+}
+
+export const zipCodeExists = async (zipCode: string) => {
+    return database('zip_code')
+        .where('zip_code', zipCode);
+}
+
+export const getZipCodeLatLng = async (zipCode: string) => {
+    return database('zip_code')
+        .where('zip_code', zipCode)
+        .select('latitude', 'longitude')
+        .first();
+}
+
+export const isUserWithinInvitationRadius = async (
+    userId: number,
+    invitationId: number
+) => {
+    const user = await database('user')
+        .join('zip_code', 'zip_code.zip_code', 'user.zip_code')
+        .select('zip_code.latitude', 'zip_code.longitude')
+        .where('user.id', userId)
+        .first();
+
+    if (!user) {
+        return false;
+    }
+
+    const invitation = await database('business_invitation')
+        .select('location_lat', 'location_lng', 'location_radius_miles')
+        .where('id', invitationId)
+        .first();
+
+    const distance = milesBetween(
+        user.latitude,
+        user.longitude,
+        invitation.location_lat,
+        invitation.location_lng
+    );
+
+    return distance <= invitation.location_radius_miles;
+}
+
+export const demoteActiveInvitations = async () => {
+    await database('business_invitation_recipient')
+        .where('response', BusinessInvitationResponse.Pending)
+        .whereIn('slot_position', [3, 4, 5])
+        .update({ response: BusinessInvitationResponse.Declined, slot_position: 0 });
+
+    await database('business_invitation_recipient')
+        .where('slot_position', 2)
+        .update({ slot_position: 5 });
+
+    await database('business_invitation_recipient')
+        .where('slot_position', 1)
+        .update({ slot_position: 4 });
+}
+
+export const gatherUsers = async (): Promise<{ id: number }[]> => {
+    return database('user').select('id');
+}
+
+export const gatherCampaigns = async (): Promise<BusinessInvitation[]> => {
+    const today = new Date();
+    const rows = await database('business_invitation')
+        .where('date_start', '<=', today)
+        .andWhere('date_end', '>=', today);
+    return rows.map(mapDbBusinessInvitationToBusinessInvitation);
+}
+
+export const getUserBeenInvited = async (campaignId: number, userId: number): Promise<boolean> => {
+    const result = await database.raw(
+        `select exists (
+            select id from business_invitation_recipient
+            where business_invitation_id = ? and user_id = ?
+        ) as "alreadyBeenInvited"`,
+        [campaignId, userId]
+    );
+    return result.rows[0].alreadyBeenInvited;
+}
+
+export const getEligibleGroupsForUser = async (userId: number, campaign: BusinessInvitation): Promise<number> => {
+    const query = database('group as g')
+        .leftJoin('group_user as gu', 'g.id', 'gu.group_id')
+        .where('gu.user_id', userId)
+        .whereIn('gu.role', [2, 3, 4])
+        .whereRaw(
+            '(select count(inner_gu.id) from group_user as inner_gu where inner_gu.group_id = g.id) >= ?',
+            [campaign.groupSizeMin]
+        );
+
+    if (campaign.groupSizeMax !== null) {
+        query.whereRaw(
+            '(select count(inner_gu.id) from group_user as inner_gu where inner_gu.group_id = g.id) <= ?',
+            [campaign.groupSizeMax]
+        );
+    }
+
+    const result = await query.count('g.id as count').first();
+    return Number(result?.count ?? 0);
+}
+
+export const createBusinessInvitationRecipient = async (
+    businessInvitationId: number,
+    userId: number,
+    slotPosition: number
+): Promise<void> => {
+    await database('business_invitation_recipient').insert({
+        business_invitation_id: businessInvitationId,
+        user_id: userId,
+        slot_position: slotPosition
+    });
+}
+
+export const onEventCreatedFromInvitation = async (userId: number, businessInvitationId: number) => {
+    const recipient = await database('business_invitation_recipient')
+        .where({ user_id: userId, business_invitation_id: businessInvitationId })
+        .select('slot_position')
+        .first();
+
+    await database('business_invitation_recipient')
+        .where({ user_id: userId, business_invitation_id: businessInvitationId })
+        .update({
+            as_push_notification: recipient.slot_position === 1,
+            response: BusinessInvitationResponse.Accepted
+        });
 }

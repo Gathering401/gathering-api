@@ -87,6 +87,11 @@ export interface DbAnalytics {
     rsvpsAccepted: number;
 }
 
+export interface CampaignMatch {
+    id: number;
+    groupCount: number;
+}
+
 export const mapBusinessInvitationToDbBusinessInvitation = (invitation: BusinessInvitation): DbBusinessInvitationPost => ({
     business_id: invitation.businessId,
     name: invitation.name,
@@ -164,7 +169,7 @@ export const mapToAnalytics = (analytics: DbAnalytics[] | DbAnalytics): Analytic
             if (row.response === BusinessInvitationResponse.Accepted) {
                 pushNotificationsCreated.eventsCreated += Number(row.count);
                 pushNotificationsCreated.rsvpsAccepted += Number(row.rsvpsAccepted);
-            } else if(row.response === BusinessInvitationResponse.Rejected) {
+            } else if(row.response === BusinessInvitationResponse.Declined) {
                 pushNotificationsCreated.usersRejected += Number(row.count);
             }
         } else {
@@ -173,7 +178,7 @@ export const mapToAnalytics = (analytics: DbAnalytics[] | DbAnalytics): Analytic
             if (row.response === BusinessInvitationResponse.Accepted) {
                 calendarInvitationsCreated.eventsCreated += Number(row.count);
                 calendarInvitationsCreated.rsvpsAccepted += Number(row.rsvpsAccepted);
-            } else if(row.response === BusinessInvitationResponse.Rejected) {
+            } else if(row.response === BusinessInvitationResponse.Declined) {
                 calendarInvitationsCreated.usersRejected += Number(row.count);
             }
         }

@@ -12,7 +12,7 @@ export const postUser = async (user: User): Promise<User[]> => {
     return database
         .table('user')
         .insert(mapUserToDb(user))
-        .returning(['id', 'first_name', 'last_name', 'email', 'birthdate', 'username', 'phone']);
+        .returning(['id', 'first_name', 'last_name', 'email', 'birthdate', 'username', 'phone', 'zip_code']);
 }
 
 export const getUser = async (username: string) => {

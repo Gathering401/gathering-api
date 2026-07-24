@@ -1,5 +1,5 @@
 export enum BusinessInvitationResponse {
     Pending = 1,
     Accepted = 2,
-    Rejected = 3
+    Declined = 3
 }

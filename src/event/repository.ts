@@ -3,6 +3,8 @@ import {EventPost, EventPutMulti, EventPutSingle, mapEventPostToDbEvent, Rsvp} f
 import {Role} from "../common/enums/role";
 import _ from "lodash";
 import {scheduleEventNotifications} from "../notifications";
+import {onEventCreatedFromInvitation} from "../business/repository";
+import {BusinessInvitationResponse} from "../common/enums/businessInvitationResponse";
 
 const connection = require('../knexfile')[process.env.NODE_ENV || 'development'];
 
@@ -106,6 +108,10 @@ export const postEvent = async (event: EventPost) => {
         await scheduleEventNotifications(row.id);
     }
 
+    if (event.businessInvitationId) {
+        await onEventCreatedFromInvitation(event.hostId, event.businessInvitationId);
+    }
+
     return response;
 }
 
@@ -197,4 +203,20 @@ export const putNotifications = async (eventId: number, userId: number, notifica
         .update({ notifications })
         .where('event_id', eventId)
         .where('user_id', userId);
+}
+
+export const setInvitationDeclined = async (userId: number, businessInvitationId: number) => {
+    await database('business_invitation_recipient')
+        .where({ user_id: userId, business_invitation_id: businessInvitationId })
+        .update({ response: BusinessInvitationResponse.Declined });
+}
+
+export const getUserActiveInvitations = async (userId: number) => {
+    return database('business_invitation_recipient as r')
+        .join('business_invitation as b', 'b.id', 'r.business_invitation_id')
+        .where('r.user_id', userId)
+        .where('r.response', BusinessInvitationResponse.Pending)
+        .whereIn('r.slot_position', [1, 2, 3, 4, 5])
+        .orderBy('r.slot_position', 'asc')
+        .select('b.*', 'r.slot_position', 'r.as_push_notification');
 }

@@ -3,6 +3,7 @@
  * @returns { Promise<void> } 
  */
 exports.seed = async function(knex) {
+  await knex('repetition').del();
   await knex('repetition').insert([
     {description: 'none'},
     {description: 'annually'},

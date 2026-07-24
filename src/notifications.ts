@@ -12,12 +12,12 @@ const sendPushNotification = async (token: string, title: string, body: string) 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ to: token, title, body }),
     });
-};
+}
 
 const scheduleNotification = (token: string, title: string, body: string, sendAt: Date) => {
     if (sendAt <= new Date()) return;
     schedule.scheduleJob(sendAt, () => sendPushNotification(token, title, body));
-};
+}
 
 export const scheduleEventNotifications = async (eventId: number) => {
     const rows = await database('event_invitation as ei')

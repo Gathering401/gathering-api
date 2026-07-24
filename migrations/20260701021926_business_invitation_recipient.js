@@ -10,6 +10,7 @@ exports.up = function(knex) {
         table.bigint('group_id')
             .references('group.id')
             .onDelete('CASCADE');
+        table.smallint('slot_position').nullable();
         table.integer('role_at_send')
             .references('role.id');
         table.integer('response')

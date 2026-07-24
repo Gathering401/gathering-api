@@ -3,6 +3,7 @@
  * @returns { Promise<void> }
  */
 exports.seed = async function(knex) {
+  await knex('invite_status').del();
   await knex('invite_status').insert([
     {description: 'pending'},
     {description: 'accepted'},

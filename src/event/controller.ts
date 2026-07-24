@@ -11,6 +11,7 @@ import {
     selectEvent,
     selectEvents
 } from "./repository";
+import {getUserActiveInvitations, setInvitationDeclined} from "./repository";
 
 export const getEvent = async (req: Request, res: Response) => {
     try {
@@ -137,6 +138,28 @@ export const updateNotifications = async (req: Request, res: Response) => {
         await putNotifications(eventId, userId, notifications);
 
         res.status(200).json({ success: true });
+    } catch (err: any) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+}
+
+export const declineInvitation = async (req: Request, res: Response) => {
+    try {
+        const { businessInvitationId } = req.body;
+
+        await setInvitationDeclined(res.locals.userId, businessInvitationId);
+
+        res.status(200).json({ success: true });
+    } catch (err: any) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+}
+
+export const getActiveInvitations = async (_: Request, res: Response) => {
+    try {
+        const invitations = await getUserActiveInvitations(res.locals.userId);
+
+        res.status(200).json({ success: true, response: invitations });
     } catch (err: any) {
         res.status(500).json({ success: false, error: err.message });
     }

@@ -12,6 +12,7 @@ export interface EventPost {
     cost?: number;
     dates: string[];
     repetition: Repetition;
+    businessInvitationId?: number;
 }
 
 export interface EventPutMulti {
@@ -88,6 +89,7 @@ export interface DbEventPost {
     group_id: number;
     host_id: number;
     series_id?: number;
+    business_invitation_id?: number;
 }
 
 export const mapEventPostToDbEvent = (event: EventPost, seriesId?: number): DbEventPost[] => event.dates.map((date: string) => ({
@@ -100,6 +102,7 @@ export const mapEventPostToDbEvent = (event: EventPost, seriesId?: number): DbEv
     group_id: event.groupId,
     host_id: event.hostId,
     ...(seriesId ? {series_id: seriesId} : {}),
+    ...(event.businessInvitationId ? {business_invitation_id: event.businessInvitationId} : {}),
 }));
 
 export const mapDbEventsToPartialEvents = (events: PartialDbEventGet[]): PartialEvent[] => events.map(e => ({

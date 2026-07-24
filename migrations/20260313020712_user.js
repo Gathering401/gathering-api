@@ -13,6 +13,7 @@ exports.up = function(knex) {
         table.string('phone', 15);
         table.date('birthdate');
         table.string('expo_push_token').nullable();
+        table.string('zip_code').references('zip_code.zip_code');
     });
 };
 

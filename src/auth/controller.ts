@@ -13,6 +13,7 @@ import {
 } from "./repository";
 import {getUserValidator} from "./validation";
 import _ from "lodash";
+import {zipCodeExists} from "../business/repository";
 
 export const encryptPassword = (password: string) =>
     crypto.createHash('sha256').update(password).digest('hex');
@@ -39,6 +40,12 @@ export const register = async (req: Request, res: Response) => {
             await validator.validate(user);
         } catch (error) {
             return res.status(400).json({ error: 'Invalid input', details: error });
+        }
+
+        const [rows] = await zipCodeExists(user.zipCode);
+
+        if(!rows.length) {
+            return res.status(400).json({ error: 'Invalid zip code' });
         }
 
         user.password = encryptPassword(user.password);
