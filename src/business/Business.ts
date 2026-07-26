@@ -6,6 +6,7 @@ export interface Business {
     category: string;
     contactEmail: string;
     contactPhone: string | null;
+    averageCost: number;
     password: string;
 }
 
@@ -20,6 +21,7 @@ export interface BusinessInvitation {
     locationRadiusMiles: number | null;
     locationLat: number;
     locationLng: number;
+    locationAddress: string;
     dateStart: string | null;
     dateEnd: string | null;
     daysOfWeek: number[] | null;
@@ -36,6 +38,7 @@ export interface DbBusinessInvitationPost {
     location_radius_miles: number | null;
     location_lat: number;
     location_lng: number;
+    location_address: string;
     date_start: string | null;
     date_end: string | null;
     days_of_week: string | null;
@@ -97,6 +100,8 @@ export interface ActiveInvitation {
     name: string;
     description: string;
     businessName: string;
+    locationAddress: string;
+    averageCost: number;
     dateStart: string | null;
     dateEnd: string | null;
     slotPosition: number;
@@ -109,6 +114,8 @@ export interface DbActiveInvitation {
     name: string;
     description: string;
     business_name: string;
+    location_address: string;
+    average_cost: number;
     date_start: string | null;
     date_end: string | null;
     slot_position: number;
@@ -121,6 +128,8 @@ export const mapDbActiveInvitationToActiveInvitation = (db: DbActiveInvitation):
     name: db.name,
     description: db.description,
     businessName: db.business_name,
+    locationAddress: db.location_address,
+    averageCost: Number(db.average_cost),
     dateStart: db.date_start,
     dateEnd: db.date_end,
     slotPosition: db.slot_position,
@@ -137,6 +146,7 @@ export const mapBusinessInvitationToDbBusinessInvitation = (invitation: Business
     location_radius_miles: invitation.locationRadiusMiles,
     location_lat: invitation.locationLat,
     location_lng: invitation.locationLng,
+    location_address: invitation.locationAddress,
     date_start: invitation.dateStart,
     date_end: invitation.dateEnd,
     days_of_week: invitation.daysOfWeek ? JSON.stringify(invitation.daysOfWeek) : null,
@@ -155,6 +165,7 @@ export const mapDbBusinessInvitationToBusinessInvitation = (invitation: DbBusine
     locationRadiusMiles: invitation.location_radius_miles,
     locationLat: Number(invitation.location_lat),
     locationLng: Number(invitation.location_lng),
+    locationAddress: invitation.location_address,
     dateStart: invitation.date_start,
     dateEnd: invitation.date_end,
     daysOfWeek: invitation.days_of_week ? JSON.parse(invitation.days_of_week) : null,
@@ -171,6 +182,7 @@ export const mapRequestBodyToBusinessInvitation = (businessId: number, body: any
     locationRadiusMiles: body.locationRadiusMiles ?? null,
     locationLat: body.locationLat,
     locationLng: body.locationLng,
+    locationAddress: body.locationAddress,
     dateStart: body.dateStart ?? null,
     dateEnd: body.dateEnd ?? null,
     daysOfWeek: body.daysOfWeek ?? null,

@@ -44,7 +44,7 @@ export const verifyBusinessAccessToken = (accessToken: string) => {
 
 export const signupBusiness = async (req: Request, res: Response) => {
     try {
-        const {name, category, contactEmail, contactPhone, password} = req.body as Business;
+        const {name, category, contactEmail, contactPhone, averageCost, password} = req.body as Business;
 
         const existing = await getBusinessByEmail(contactEmail);
 
@@ -54,7 +54,7 @@ export const signupBusiness = async (req: Request, res: Response) => {
 
         const passwordHash = encryptPassword(password);
 
-        const business = await postBusiness(name, category, contactEmail, contactPhone ?? null, passwordHash);
+        const business = await postBusiness(name, category, contactEmail, contactPhone ?? null, averageCost, passwordHash);
 
         const accessToken = generateBusinessAccessToken(business.id, business.contact_email);
 

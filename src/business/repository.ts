@@ -24,7 +24,7 @@ export const getBusinessByEmail = async (contactEmail: string) => {
     return business;
 }
 
-export const postBusiness = async (name: string, category: string, contactEmail: string, contactPhone: string | null, passwordHash: string) => {
+export const postBusiness = async (name: string, category: string, contactEmail: string, contactPhone: string | null, averageCost: number, passwordHash: string) => {
     const [response] = await database
         .table('business')
         .insert({
@@ -32,9 +32,10 @@ export const postBusiness = async (name: string, category: string, contactEmail:
             category,
             contact_email: contactEmail,
             contact_phone: contactPhone,
+            average_cost: averageCost,
             password_hash: passwordHash
         })
-        .returning(['id', 'name', 'category', 'contact_email', 'contact_phone']);
+        .returning(['id', 'name', 'category', 'contact_email', 'contact_phone', 'average_cost']);
 
     return response;
 }

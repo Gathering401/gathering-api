@@ -225,7 +225,9 @@ export const getUserActiveInvitations = async (userId: number) => {
             'bi.description',
             'bi.date_start',
             'bi.date_end',
+            'bi.location_address',
             'b.name as business_name',
+            'b.average_cost',
             'r.slot_position',
             'r.as_push_notification'
         );
@@ -243,7 +245,9 @@ export const getInvitationDetailForUser = async (userId: number, invitationId: n
             'b.description',
             'b.date_start',
             'b.date_end',
+            'b.location_address',
             'biz.name as business_name',
+            'biz.average_cost',
             'r.slot_position',
             'r.as_push_notification',
             'r.response'

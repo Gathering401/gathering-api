@@ -10,7 +10,8 @@
     "build": "esbuild src/app.ts --bundle --platform=node --packages=external --outfile=dist/app.js --sourcemap",
     "start": "npm run build && node dist/app.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "knex_reset": "knex migrate:rollback --all && knex migrate:latest && knex seed:run"
+    "knex_reset": "knex migrate:rollback --all && knex migrate:latest && knex seed:run",
+    "script": "npx ts-node"
   },
   "repository": {
     "type": "git",
