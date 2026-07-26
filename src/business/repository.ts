@@ -233,3 +233,17 @@ export const onEventCreatedFromInvitation = async (userId: number, businessInvit
             response: BusinessInvitationResponse.Accepted
         });
 }
+
+export const getPushSlotRecipients = async () => {
+    return database('business_invitation_recipient as r')
+        .join('user as u', 'u.id', 'r.user_id')
+        .join('business_invitation as b', 'b.id', 'r.business_invitation_id')
+        .where('r.slot_position', 1)
+        .whereNotNull('u.expo_push_token')
+        .select(
+            'u.expo_push_token',
+            'b.id as invitation_id',
+            'b.name',
+            'b.description'
+        );
+}

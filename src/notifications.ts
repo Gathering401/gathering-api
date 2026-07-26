@@ -6,12 +6,13 @@ const connection = require('../knexfile')[process.env.NODE_ENV || 'development']
 
 const database = knex(connection);
 
-const sendPushNotification = async (token: string, title: string, body: string) => {
-    await fetch('https://exp.host/--/exponent-push-notification-tool', {
+export const sendPushNotification = async (token: string, title: string, body: string, data?: Record<string, unknown>) => {
+    const result = await fetch('https://exp.host/--/api/v2/push/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to: token, title, body }),
+        body: JSON.stringify({ to: token, title, body, ...(data ? {data} : {}) }),
     });
+    return await result.json();
 }
 
 const scheduleNotification = (token: string, title: string, body: string, sendAt: Date) => {

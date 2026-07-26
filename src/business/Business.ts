@@ -92,6 +92,42 @@ export interface CampaignMatch {
     groupCount: number;
 }
 
+export interface ActiveInvitation {
+    id: number;
+    name: string;
+    description: string;
+    businessName: string;
+    dateStart: string | null;
+    dateEnd: string | null;
+    slotPosition: number;
+    asPushNotification: boolean;
+    response: BusinessInvitationResponse;
+}
+
+export interface DbActiveInvitation {
+    id: number;
+    name: string;
+    description: string;
+    business_name: string;
+    date_start: string | null;
+    date_end: string | null;
+    slot_position: number;
+    as_push_notification: boolean;
+    response: BusinessInvitationResponse;
+}
+
+export const mapDbActiveInvitationToActiveInvitation = (db: DbActiveInvitation): ActiveInvitation => ({
+    id: db.id,
+    name: db.name,
+    description: db.description,
+    businessName: db.business_name,
+    dateStart: db.date_start,
+    dateEnd: db.date_end,
+    slotPosition: db.slot_position,
+    asPushNotification: db.as_push_notification,
+    response: db.response
+});
+
 export const mapBusinessInvitationToDbBusinessInvitation = (invitation: BusinessInvitation): DbBusinessInvitationPost => ({
     business_id: invitation.businessId,
     name: invitation.name,

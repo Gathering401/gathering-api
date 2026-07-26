@@ -44,7 +44,7 @@ export const register = async (req: Request, res: Response) => {
 
         const [rows] = await zipCodeExists(user.zipCode);
 
-        if(!rows.length) {
+        if(!rows) {
             return res.status(400).json({ error: 'Invalid zip code' });
         }
 

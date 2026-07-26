@@ -14,7 +14,7 @@ import {
     getUserBeenInvited,
     getEligibleGroupsForUser,
     createBusinessInvitationRecipient,
-    isUserWithinInvitationRadius
+    isUserWithinInvitationRadius, getPushSlotRecipients
 } from "./repository";
 import {encryptPassword} from "../auth/controller";
 import {
@@ -22,6 +22,7 @@ import {
     mapDbBusinessInvitationToBusinessInvitation,
     mapRequestBodyToBusinessInvitation, mapToAnalytics
 } from "./Business";
+import {sendPushNotification} from "../notifications";
 
 export const generateBusinessAccessToken = (businessId: number, contactEmail: string) =>
     jwt.sign({ type: 'business', businessId, contactEmail }, process.env.HASH_SECRET as string, { expiresIn: '24h' });
@@ -204,6 +205,21 @@ export const createInvitations = async () => {
         const topMatches = matches.slice(0, 3);
         for (const [index, match] of topMatches.entries()) {
             await createBusinessInvitationRecipient(match.id, userId, index + 1);
+        }
+    }
+
+    const pushRecipients = await getPushSlotRecipients();
+
+    for (const recipient of pushRecipients) {
+        try {
+            await sendPushNotification(
+                recipient.expo_push_token,
+                recipient.name,
+                recipient.description,
+                {invitationId: recipient.invitation_id}
+            );
+        } catch (err) {
+            console.error('push send failed', err);
         }
     }
 }

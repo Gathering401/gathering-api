@@ -213,10 +213,40 @@ export const setInvitationDeclined = async (userId: number, businessInvitationId
 
 export const getUserActiveInvitations = async (userId: number) => {
     return database('business_invitation_recipient as r')
-        .join('business_invitation as b', 'b.id', 'r.business_invitation_id')
+        .join('business_invitation as bi', 'bi.id', 'r.business_invitation_id')
+        .join('business as b', 'b.id', 'bi.business_id')
         .where('r.user_id', userId)
         .where('r.response', BusinessInvitationResponse.Pending)
         .whereIn('r.slot_position', [1, 2, 3, 4, 5])
         .orderBy('r.slot_position', 'asc')
-        .select('b.*', 'r.slot_position', 'r.as_push_notification');
+        .select(
+            'bi.id',
+            'bi.name',
+            'bi.description',
+            'bi.date_start',
+            'bi.date_end',
+            'b.name as business_name',
+            'r.slot_position',
+            'r.as_push_notification'
+        );
+}
+
+export const getInvitationDetailForUser = async (userId: number, invitationId: number) => {
+    return database('business_invitation_recipient as r')
+        .join('business_invitation as b', 'b.id', 'r.business_invitation_id')
+        .join('business as biz', 'biz.id', 'b.business_id')
+        .where('r.user_id', userId)
+        .where('r.business_invitation_id', invitationId)
+        .select(
+            'b.id',
+            'b.name',
+            'b.description',
+            'b.date_start',
+            'b.date_end',
+            'biz.name as business_name',
+            'r.slot_position',
+            'r.as_push_notification',
+            'r.response'
+        )
+        .first();
 }

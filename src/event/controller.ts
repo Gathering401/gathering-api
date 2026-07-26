@@ -3,7 +3,7 @@ import {EventPost, mapDbEventsToPartialEvents, mapDbEventToEvent, Rsvp} from "./
 import {getEventValidator, getUpdateEventValidator, getUpdateSeriesValidator} from "./validation";
 import {
     deleteSeriesEvent,
-    deleteSingleEvent,
+    deleteSingleEvent, getInvitationDetailForUser,
     postEvent,
     putEvent, putNotifications,
     putRsvp,
@@ -12,6 +12,7 @@ import {
     selectEvents
 } from "./repository";
 import {getUserActiveInvitations, setInvitationDeclined} from "./repository";
+import {mapDbActiveInvitationToActiveInvitation} from "../business/Business";
 
 export const getEvent = async (req: Request, res: Response) => {
     try {
@@ -158,8 +159,25 @@ export const declineInvitation = async (req: Request, res: Response) => {
 export const getActiveInvitations = async (_: Request, res: Response) => {
     try {
         const invitations = await getUserActiveInvitations(res.locals.userId);
+        const mapped = invitations.map(mapDbActiveInvitationToActiveInvitation);
 
-        res.status(200).json({ success: true, response: invitations });
+        res.status(200).json({ success: true, response: mapped });
+    } catch (err: any) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+}
+
+export const getInvitationDetails = async (req: Request, res: Response) => {
+    try {
+        const invitationId = Number(req.params.id);
+        const invitation = await getInvitationDetailForUser(res.locals.userId, invitationId);
+
+        if (!invitation) {
+            res.status(404).json({ success: false, error: 'Invitation not found' });
+            return;
+        }
+
+        res.status(200).json({ success: true, response: mapDbActiveInvitationToActiveInvitation(invitation) });
     } catch (err: any) {
         res.status(500).json({ success: false, error: err.message });
     }

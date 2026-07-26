@@ -8,4 +8,5 @@ export const getUserValidator = () => Yup.object().shape({
     password: Yup.string().required('Password is required'),
     username: Yup.string().required('Username is required'),
     birthdate: Yup.string().required('Birthdate is required'),
+    zipCode: Yup.string().required('Zip code is required')
 });
