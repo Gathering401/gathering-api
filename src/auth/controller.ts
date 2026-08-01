@@ -82,7 +82,8 @@ export const login = async (req: Request, res: Response) => {
         firstName: user.first_name,
         lastName: user.last_name,
         birthdate: user.birthdate,
-        phone: user.phone
+        phone: user.phone,
+        expoPushToken: user.expo_push_token
     };
 
     res.status(200).json({

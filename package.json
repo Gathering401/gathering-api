@@ -46,6 +46,7 @@
     "papaparse": "^5.5.4",
     "pg": "^8.20.0",
     "resend": "^6.14.0",
+    "stripe": "^22.3.2",
     "typescript": "^5.9.3",
     "yup": "^1.7.1"
   },
@@ -56,6 +57,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/lodash": "^4.17.24",
     "@types/node-cron": "^3.0.11",
+    "@types/stripe": "^8.0.416",
     "jest": "^30.3.0"
   }
 }

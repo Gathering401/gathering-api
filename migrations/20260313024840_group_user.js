@@ -15,6 +15,7 @@ exports.up = function(knex) {
             indexName: 'group_user_composite_index',
             useConstraint: true,
         });
+        table.boolean('allow_notifications').notNullable().defaultTo(true);
         table.boolean('invited_by_group');
         table.integer('invite_status').references('invite_status.id').defaultTo(1);
         table.integer('role').references('role.id').defaultTo(1);

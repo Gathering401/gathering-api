@@ -16,7 +16,7 @@ export const isBusinessAuthenticated = (req: Request, res: Response, next: NextF
         return res.status(401).json({success: false, message: 'Invalid or expired token'});
     }
 
-    res.locals.businessId = decoded.businessId;
+    res.locals.businessId = Number(decoded.businessId);
 
     next();
 }

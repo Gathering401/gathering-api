@@ -8,7 +8,7 @@ import {
     putGroup,
     putUserInvite,
     putUserRole, selectAvailableGroups, selectGroup,
-    updateOwner
+    updateOwner, updateGroupNotificationPreference
 } from "./repository";
 import {Role} from "../common/enums/role";
 
@@ -31,7 +31,8 @@ export const getGroup = async (req: Request, res: Response) => {
         res.status(200).json({
             success: true,
             response: mapDbGroupToGroup(response),
-            currentRole: user.role
+            currentRole: user.role,
+            allowNotifications: user.allow_notifications
         })
     } catch (err: any) {
         res.status(500).json({success: false, error: err.message});
@@ -261,6 +262,21 @@ export const searchUsers = async (req: Request, res: Response) => {
         res.status(200).json({
             success: true,
             response: response ?? []
+        });
+    } catch (err: any) {
+        res.status(500).json({success: false, error: err.message});
+    }
+}
+
+export const updateNotificationPreference = async (req: Request, res: Response) => {
+    try {
+        const {id, enabled} = req.query;
+        const userId = res.locals.userId;
+
+        await updateGroupNotificationPreference(Number(id), userId, enabled === "true");
+
+        res.status(200).json({
+            success: true,
         });
     } catch (err: any) {
         res.status(500).json({success: false, error: err.message});

@@ -182,7 +182,7 @@ export const mapRequestBodyToBusinessInvitation = (businessId: number, body: any
     locationRadiusMiles: body.locationRadiusMiles ?? null,
     locationLat: body.locationLat,
     locationLng: body.locationLng,
-    locationAddress: body.locationAddress,
+    locationAddress: body.address,
     dateStart: body.dateStart ?? null,
     dateEnd: body.dateEnd ?? null,
     daysOfWeek: body.daysOfWeek ?? null,

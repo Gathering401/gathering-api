@@ -309,3 +309,9 @@ export const getUsersBy = async (username: string, groupId: number, userId: numb
                 .orWhere('group_user.invite_status', '=', 1)
         });
 }
+
+export const updateGroupNotificationPreference = async (groupId: number, userId: number, enabled: boolean) => {
+    return database('group_user')
+        .where({group_id: groupId, user_id: userId})
+        .update({allow_notifications: enabled});
+}

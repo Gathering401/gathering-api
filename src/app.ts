@@ -6,7 +6,9 @@ import authRoutes from './auth/routes';
 import groupRoutes from './group/routes';
 import eventRoutes from './event/routes';
 import businessRoutes from './business/routes';
+import billingRoutes from './billing/routes';
 import {startInvitationStatusCron} from "./business/cron";
+import {startBillingCron} from "./billing/cron";
 
 const app = express();
 
@@ -17,8 +19,11 @@ require('knex')({
 });
 
 app.set('trust proxy', 1);
-app.use(express.json());
 app.use(cors());
+
+app.use('/billing', billingRoutes);
+
+app.use(express.json());
 
 app.get('/status', (_, res) => {
     res.json({
@@ -33,6 +38,7 @@ app.use('/event', eventRoutes);
 app.use('/business', businessRoutes);
 
 startInvitationStatusCron();
+startBillingCron();
 
 app.use((err: Error, _: Request, res: Response, __: NextFunction) => {
     console.error(err.stack);

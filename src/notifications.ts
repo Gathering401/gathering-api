@@ -24,6 +24,10 @@ export const scheduleEventNotifications = async (eventId: number) => {
     const rows = await database('event_invitation as ei')
         .join('event as e', 'e.id', 'ei.event_id')
         .join('user as u', 'u.id', 'ei.user_id')
+        .join('group_user as gu', function() {
+            this.on('gu.group_id', '=', 'e.group_id')
+                .andOn('gu.user_id', '=', 'ei.user_id');
+        })
         .select(
             'u.expo_push_token',
             'e.name',
@@ -32,6 +36,7 @@ export const scheduleEventNotifications = async (eventId: number) => {
         )
         .where('ei.event_id', eventId)
         .where('ei.notifications', true)
+        .where('gu.allow_notifications', true)
         .whereNotNull('u.expo_push_token');
 
     for (const row of rows) {

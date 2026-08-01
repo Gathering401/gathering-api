@@ -14,7 +14,8 @@ import {
     getUserBeenInvited,
     getEligibleGroupsForUser,
     createBusinessInvitationRecipient,
-    isUserWithinInvitationRadius, getPushSlotRecipients
+    isUserWithinInvitationRadius, getPushSlotRecipients, cancelBusinessInvitation, getBusinessPaymentStatus,
+    updateBusinessStripeCustomerId
 } from "./repository";
 import {encryptPassword} from "../auth/controller";
 import {
@@ -23,6 +24,10 @@ import {
     mapRequestBodyToBusinessInvitation, mapToAnalytics
 } from "./Business";
 import {sendPushNotification} from "../notifications";
+import {BusinessPaymentStatus} from "../common/enums/businessPaymentStatus";
+import {selectOpenInvoiceForBusiness} from "../billing/repository";
+import {mapBusinessInvoiceFromDb} from "../billing/Billing";
+import {createSetupCheckoutSession, createStripeCustomer} from "../billing/stripe";
 
 export const generateBusinessAccessToken = (businessId: number, contactEmail: string) =>
     jwt.sign({ type: 'business', businessId, contactEmail }, process.env.HASH_SECRET as string, { expiresIn: '24h' });
@@ -56,12 +61,19 @@ export const signupBusiness = async (req: Request, res: Response) => {
 
         const business = await postBusiness(name, category, contactEmail, contactPhone ?? null, averageCost, passwordHash);
 
+        const stripeCustomer = await createStripeCustomer(name, contactEmail);
+        await updateBusinessStripeCustomerId(business.id, stripeCustomer.id);
+
+        const frontendUrl = process.env.FRONTEND_URL as string;
+        const checkoutSession = await createSetupCheckoutSession(stripeCustomer.id, frontendUrl, frontendUrl);
+
         const accessToken = generateBusinessAccessToken(business.id, business.contact_email);
 
         res.status(201).json({
             success: true,
             response: business,
-            accessToken
+            accessToken,
+            checkoutUrl: checkoutSession.url
         });
     } catch (err: any) {
         res.status(500).json({success: false, error: err.message});
@@ -104,6 +116,20 @@ export const loginBusiness = async (req: Request, res: Response) => {
 
 export const createInvitation = async (req: Request, res: Response) => {
     try {
+        const paymentStatus = await getBusinessPaymentStatus(res.locals.businessId);
+
+        if (paymentStatus === BusinessPaymentStatus.blocked) {
+            const openInvoice = await selectOpenInvoiceForBusiness(res.locals.businessId);
+
+            res.status(402).json({
+                success: false,
+                error: 'Account is blocked pending payment. Please resolve your account balance to create new campaigns.',
+                invoiceId: openInvoice?.id ?? null,
+                hostedInvoiceUrl: openInvoice?.hosted_invoice_url ?? null
+            });
+            return;
+        }
+
         const businessInvitation = mapRequestBodyToBusinessInvitation(res.locals.businessId, req.body);
 
         const [invitation] = await postBusinessInvitation(businessInvitation);
@@ -221,5 +247,48 @@ export const createInvitations = async () => {
         } catch (err) {
             console.error('push send failed', err);
         }
+    }
+}
+
+export const cancelInvitation = async (req: Request, res: Response) => {
+    try {
+        const {invitationId} = req.query;
+        const businessId = res.locals.businessId;
+
+        const updated = await cancelBusinessInvitation(Number(invitationId), businessId);
+
+        if (!updated) {
+            return res.status(404).json({ success: false, error: 'Invitation not found' });
+        }
+
+        res.status(200).json({ success: true });
+    } catch (err: any) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+}
+
+export const getPaymentStatus = async (_: Request, res: Response) => {
+    try {
+        const paymentStatus = await getBusinessPaymentStatus(res.locals.businessId);
+
+        res.status(200).json({
+            success: true,
+            response: {paymentStatus}
+        });
+    } catch (err: any) {
+        res.status(500).json({success: false, error: err.message});
+    }
+}
+
+export const getOpenInvoice = async (_: Request, res: Response) => {
+    try {
+        const invoice = await selectOpenInvoiceForBusiness(res.locals.businessId);
+
+        res.status(200).json({
+            success: true,
+            response: invoice ? mapBusinessInvoiceFromDb(invoice) : null
+        });
+    } catch (err: any) {
+        res.status(500).json({success: false, error: err.message});
     }
 }

@@ -10,6 +10,7 @@ import {DateTime} from "luxon";
 import {RsvpStatus} from "../common/enums/rsvpStatus";
 import {milesBetween} from "../common/utils/haversineCalculator";
 import {BusinessInvitationResponse} from "../common/enums/businessInvitationResponse";
+import {BusinessPaymentStatus} from "../common/enums/businessPaymentStatus";
 
 const connection = require('../knexfile')[process.env.NODE_ENV || 'development'];
 
@@ -24,6 +25,13 @@ export const getBusinessByEmail = async (contactEmail: string) => {
     return business;
 }
 
+export const getBusinessPaymentStatus = async (businessId: number): Promise<number | undefined> => {
+    const row = await database('business')
+        .where('id', businessId)
+        .first('payment_status');
+    return row?.payment_status;
+}
+
 export const postBusiness = async (name: string, category: string, contactEmail: string, contactPhone: string | null, averageCost: number, passwordHash: string) => {
     const [response] = await database
         .table('business')
@@ -33,11 +41,29 @@ export const postBusiness = async (name: string, category: string, contactEmail:
             contact_email: contactEmail,
             contact_phone: contactPhone,
             average_cost: averageCost,
-            password_hash: passwordHash
+            password_hash: passwordHash,
+            payment_status: BusinessPaymentStatus.blocked
         })
-        .returning(['id', 'name', 'category', 'contact_email', 'contact_phone', 'average_cost']);
+        .returning(['id', 'name', 'category', 'contact_email', 'contact_phone', 'average_cost', 'stripe_customer_id']);
 
     return response;
+}
+
+export const updateBusinessStripeCustomerId = async (businessId: number, stripeCustomerId: string) => {
+    const [response] = await database
+        .table('business')
+        .where({id: businessId})
+        .update({stripe_customer_id: stripeCustomerId})
+        .returning(['id', 'stripe_customer_id']);
+
+    return response;
+}
+
+export const getBusinessByStripeCustomerId = async (stripeCustomerId: string) => {
+    return database
+        .table('business')
+        .where({stripe_customer_id: stripeCustomerId})
+        .first();
 }
 
 export const postBusinessInvitation = async (invitation: BusinessInvitation) => {
@@ -64,17 +90,17 @@ export const getBusinessInvitationsByBusinessId = async (businessId: number, sta
 export const activateStartingInvitations = async () => {
     return database
         .table('business_invitation')
-        .where('status', BusinessInvitationStatus.Draft)
+        .where('status', BusinessInvitationStatus.draft)
         .andWhere('date_start', '<=', DateTime.now().toSQLDate())
-        .update({ status: BusinessInvitationStatus.Active });
+        .update({ status: BusinessInvitationStatus.active });
 }
 
 export const completeEndingInvitations = async () => {
     return database
         .table('business_invitation')
-        .where('status', BusinessInvitationStatus.Active)
+        .where('status', BusinessInvitationStatus.active)
         .andWhere('date_end', '<', DateTime.now().toSQLDate())
-        .update({ status: BusinessInvitationStatus.Completed });
+        .update({ status: BusinessInvitationStatus.completed });
 }
 
 export const selectCompareIds = async (invitationId: number, timeframe: Timeframe) => {
@@ -172,8 +198,12 @@ export const gatherUsers = async (): Promise<{ id: number }[]> => {
 export const gatherCampaigns = async (): Promise<BusinessInvitation[]> => {
     const today = new Date();
     const rows = await database('business_invitation')
-        .where('date_start', '<=', today)
-        .andWhere('date_end', '>=', today);
+        .join('business', 'business.id', 'business_invitation.business_id')
+        .where('business_invitation.date_start', '<=', today)
+        .andWhere('business_invitation.date_end', '>=', today)
+        .andWhere('business_invitation.status', BusinessInvitationStatus.active)
+        .andWhere('business.payment_status', BusinessPaymentStatus.goodStanding)
+        .select('business_invitation.*');
     return rows.map(mapDbBusinessInvitationToBusinessInvitation);
 }
 
@@ -247,4 +277,10 @@ export const getPushSlotRecipients = async () => {
             'b.name',
             'b.description'
         );
+}
+
+export const cancelBusinessInvitation = async (invitationId: number, businessId: number): Promise<number> => {
+    return database('business_invitation')
+        .where({ id: invitationId, business_id: businessId })
+        .update({ status: BusinessInvitationStatus.cancelled });
 }

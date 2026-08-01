@@ -8,7 +8,7 @@ import {
     removeMember,
     requestToJoin,
     respondToInvite, respondToRequest, searchUsers,
-    updateGroup
+    updateGroup, updateNotificationPreference
 } from './controller';
 import {
     isAdmin,
@@ -41,5 +41,6 @@ router.delete('/leave', isInGroup, isNotOwner, leaveGroup);
 router.put('/change-role', isInGroup, isAdmin, isLowerRole, isNotHigherRole, changeRole);
 router.get('/my-groups', getMyGroups);
 router.get('/available-groups', getAvailableGroups);
+router.put('/notification-preference', isInGroup, updateNotificationPreference);
 
 export default router;
