@@ -92,6 +92,30 @@ export interface DbEventPost {
     business_invitation_id?: number;
 }
 
+interface DbInvitation {
+    event_id: number;
+    group_id: number;
+    rsvp_status: RsvpStatus;
+    event_name: string;
+    date: string;
+    group_name: string;
+    repetition: Repetition;
+    description: string;
+    series_id: number;
+}
+
+interface Invitation {
+    eventId: number;
+    groupId: number;
+    rsvpStatus: RsvpStatus;
+    eventName: string;
+    date: string;
+    groupName: string;
+    repetition: Repetition;
+    description: string;
+    seriesId: number;
+}
+
 export const mapEventPostToDbEvent = (event: EventPost, seriesId?: number): DbEventPost[] => event.dates.map((date: string) => ({
     name: event.name,
     description: event.description,
@@ -115,6 +139,18 @@ export const mapDbEventsToPartialEvents = (events: PartialDbEventGet[]): Partial
     myRsvp: e.rsvp_status,
     seriesId: Number(e.series_id),
     repetition: e.repetition
+}));
+
+export const mapDbInvitationsToInvitations = (invitations: DbInvitation[]): Invitation[] => invitations.map(i => ({
+    eventId: i.event_id,
+    groupId: i.group_id,
+    eventName: i.event_name,
+    rsvpStatus: i.rsvp_status,
+    date: i.date,
+    groupName: i.group_name,
+    repetition: i.repetition,
+    description: i.description,
+    seriesId: i.series_id
 }));
 
 export const mapDbEventToEvent = (events: DbEventGet[], currentRole: Role, host: any, myRsvp: RsvpStatus, myNotifications: boolean, seriesDates: string[] = []): Event => {

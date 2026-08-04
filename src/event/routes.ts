@@ -6,7 +6,9 @@ import {
     declineInvitation,
     getActiveInvitations,
     getEvent,
-    getEvents, getInvitationDetails,
+    getEvents,
+    getInvitationDetails,
+    getPendingInvitations,
     updateEvent,
     updateNotifications
 } from './controller';
@@ -19,6 +21,7 @@ router.use(isAuthenticated);
 router.post('/', isInGroup, createEvent);
 router.get('/', isInGroup, getEvent);
 router.get('/all', getEvents);
+router.get('/pending-invitations', getPendingInvitations);
 router.put('/', isInGroup, isAdminOrHost, updateEvent);
 router.delete('/', isInGroup, isAdminOrHost, cancelEvent);
 router.put('/rsvp', isInGroup, changeRsvp);

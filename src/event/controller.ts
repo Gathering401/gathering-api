@@ -1,5 +1,5 @@
 import {Request, Response} from 'express';
-import {EventPost, mapDbEventsToPartialEvents, mapDbEventToEvent, Rsvp} from "./Event";
+import {EventPost, mapDbEventsToPartialEvents, mapDbEventToEvent, mapDbInvitationsToInvitations, Rsvp} from "./Event";
 import {getEventValidator, getUpdateEventValidator, getUpdateSeriesValidator} from "./validation";
 import {
     deleteSeriesEvent,
@@ -9,10 +9,11 @@ import {
     putRsvp,
     putRsvpForSeries,
     selectEvent,
-    selectEvents
+    selectEvents, selectPendingInvitations
 } from "./repository";
 import {getUserActiveInvitations, setInvitationDeclined} from "./repository";
 import {mapDbActiveInvitationToActiveInvitation} from "../business/Business";
+import {RsvpStatus} from "../common/enums/rsvpStatus";
 
 export const getEvent = async (req: Request, res: Response) => {
     try {
@@ -34,15 +35,30 @@ export const getEvent = async (req: Request, res: Response) => {
     }
 }
 
-export const getEvents = async (_: Request, res: Response) => {
+export const getEvents = async (req: Request, res: Response) => {
     try {
         const { userId } = res.locals;
+        const { year, month } = req.query;
 
-        const response = await selectEvents(userId);
+        const events = await selectEvents(userId, Number(year), Number(month));
 
         res.status(200).json({
             success: true,
-            response: mapDbEventsToPartialEvents(response)
+            response: mapDbEventsToPartialEvents(events)
+        });
+    } catch (err: any) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+}
+
+export const getPendingInvitations = async (_: Request, res: Response) => {
+    try {
+        const { userId } = res.locals;
+        const invitations = await selectPendingInvitations(userId);
+
+        res.status(200).json({
+            success: true,
+            response: mapDbInvitationsToInvitations(invitations)
         });
     } catch (err: any) {
         res.status(500).json({ success: false, error: err.message });
@@ -115,7 +131,7 @@ export const cancelEvent = async (req: Request, res: Response) => {
 export const changeRsvp = async (req: Request, res: Response) => {
     try {
         const eventId = Number(req.query.eventId);
-        const rsvp = Number(req.query.rsvp) as any as Rsvp;
+        const rsvp = Number(req.query.rsvp);
         const userId = Number(res.locals.userId);
         const applyToSeries = req.query.applyToSeries === 'true';
 

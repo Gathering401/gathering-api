@@ -1,10 +1,12 @@
 import knex from 'knex';
-import {EventPost, EventPutMulti, EventPutSingle, mapEventPostToDbEvent, Rsvp} from "./Event";
+import {EventPost, EventPutMulti, EventPutSingle, mapEventPostToDbEvent} from "./Event";
 import {Role} from "../common/enums/role";
 import _ from "lodash";
 import {scheduleEventNotifications} from "../notifications";
 import {onEventCreatedFromInvitation} from "../business/repository";
 import {BusinessInvitationResponse} from "../common/enums/businessInvitationResponse";
+import {RsvpStatus} from "../common/enums/rsvpStatus";
+import { DateTime } from 'luxon';
 
 const connection = require('../knexfile')[process.env.NODE_ENV || 'development'];
 
@@ -70,21 +72,54 @@ export const selectMyRsvp = async (eventId: number, userId: number) => {
     return result?.rsvp_status ?? null;
 }
 
-export const selectEvents = async (userId: number) => {
+export const selectEvents = async (userId: number, year: number, month: number) => {
+    const startOfMonth = DateTime.fromObject({ year, month, day: 1 }).startOf('month').toJSDate();
+    const endOfMonth = DateTime.fromObject({ year, month, day: 1 }).endOf('month').toJSDate();
+
     return database
-        .table('event')
-        .select('event.id', 'event.name', 'event.description', 'event.date', 'event.group_id', 'group.name as group_name', 'event_invitation.rsvp_status', 'event.series_id', 'event.repetition')
-        .leftJoin('event_invitation', 'event.id', 'event_invitation.event_id')
-        .leftJoin('group', 'event.group_id', 'group.id')
-        .where('event_invitation.user_id', userId)
-        .andWhere('event_invitation.rsvp_status', '<>', 3)
-        .andWhere('event.date', '>=', new Date());
+        .table('event as e')
+        .select('e.id', 'e.name', 'e.description', 'e.date', 'e.group_id', 'g.name as group_name', 'ei.rsvp_status', 'e.series_id', 'e.repetition')
+        .leftJoin('event_invitation as ei', 'e.id', 'ei.event_id')
+        .leftJoin('group as g', 'e.group_id', 'g.id')
+        .where('ei.user_id', userId)
+        .andWhere('ei.rsvp_status', '<>', 3)
+        .andWhere('e.date', '>=', startOfMonth)
+        .andWhere('e.date', '<=', endOfMonth);
+}
+
+export const selectPendingInvitations = async (userId: number) => {
+    return database
+        .select('*')
+        .from(
+            database
+                .table('event_invitation as ei')
+                .select(
+                    'e.id as event_id',
+                    'g.id as group_id',
+                    'ei.rsvp_status',
+                    'e.name as event_name',
+                    'e.date',
+                    'g.name as group_name',
+                    'e.repetition',
+                    'e.description',
+                    'e.series_id'
+                )
+                .leftJoin('event as e', 'e.id', 'ei.event_id')
+                .leftJoin('group as g', 'e.group_id', 'g.id')
+                .where('ei.rsvp_status', 1)
+                .andWhere('ei.user_id', userId)
+                .distinctOn('e.series_id')
+                .orderBy('e.series_id')
+                .orderBy('e.date', 'asc')
+                .as('deduped')
+        )
+        .orderBy('date', 'asc')
+        .limit(20);
 }
 
 export const postEvent = async (event: EventPost) => {
-    const { rows } = await database.raw('SELECT max(series_id) FROM event LIMIT 1');
-
-    const seriesId = rows.length ? Number(rows[0].max) + 1 : 1;
+    const { rows } = await database.raw("SELECT nextval('event_series_id_seq') as series_id");
+    const seriesId = Number(rows[0].series_id);
 
     const response = await database
         .table('event')
@@ -170,7 +205,7 @@ const deleteEventInvitations = async (eventIds: number[]) => {
         .whereIn('event_id', eventIds);
 }
 
-export const putRsvp = async (eventId: number, userId: number, rsvp: Rsvp) => {
+export const putRsvp = async (eventId: number, userId: number, rsvp: RsvpStatus) => {
     await database
         .table('event_invitation')
         .update('rsvp_status', rsvp)
@@ -178,7 +213,7 @@ export const putRsvp = async (eventId: number, userId: number, rsvp: Rsvp) => {
         .andWhere('user_id', userId);
 }
 
-export const putRsvpForSeries = async (eventId: number, userId: number, rsvp: Rsvp) => {
+export const putRsvpForSeries = async (eventId: number, userId: number, rsvp: RsvpStatus) => {
     const seriesId = (await database
         .table('event')
         .select('series_id')
