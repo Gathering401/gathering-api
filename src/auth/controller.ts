@@ -83,6 +83,7 @@ export const login = async (req: Request, res: Response) => {
         lastName: user.last_name,
         birthdate: user.birthdate,
         phone: user.phone,
+        zipCode: user.zip_code,
         expoPushToken: user.expo_push_token
     };
 
