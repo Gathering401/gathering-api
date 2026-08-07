@@ -2,7 +2,7 @@ import {Router} from 'express';
 import {
     changeOwner,
     changeRole,
-    createGroup, getAvailableGroups, getGroup, getMyGroups,
+    createGroup, getAllGroupEvents, getAvailableGroups, getEventCreatableGroups, getGroup, getMyGroups,
     inviteUser, leaveGroup,
     removeGroup,
     removeMember,
@@ -30,6 +30,7 @@ router.post('/', createGroup);
 router.put('/', isInGroup, isAdmin, updateGroup);
 router.delete('/', isInGroup, isOwner, removeGroup);
 router.get('/', getGroup);
+router.get('/all-events', isInGroup, getAllGroupEvents);
 router.put('/change-owner', isInGroup, isOwner, changeOwner);
 router.get('/search-users', isInGroup, searchUsers);
 router.post('/invite-user', isInGroup, isAdmin, isNotPendingInvite, inviteUser);
@@ -40,6 +41,7 @@ router.delete('/remove-member', isInGroup, isAdmin, isLowerRole, removeMember);
 router.delete('/leave', isInGroup, isNotOwner, leaveGroup);
 router.put('/change-role', isInGroup, isAdmin, isLowerRole, isNotHigherRole, changeRole);
 router.get('/my-groups', getMyGroups);
+router.get('/group/creatable', isAuthenticated, getEventCreatableGroups);
 router.get('/available-groups', getAvailableGroups);
 router.put('/notification-preference', isInGroup, updateNotificationPreference);
 

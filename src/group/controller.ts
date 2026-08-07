@@ -8,7 +8,7 @@ import {
     putGroup,
     putUserInvite,
     putUserRole, selectAvailableGroups, selectGroup,
-    updateOwner, updateGroupNotificationPreference
+    updateOwner, updateGroupNotificationPreference, selectAllGroupEvents, selectEventCreatableGroups
 } from "./repository";
 import {Role} from "../common/enums/role";
 
@@ -39,6 +39,26 @@ export const getGroup = async (req: Request, res: Response) => {
     }
 }
 
+export const getAllGroupEvents = async (_: Request, res: Response) => {
+    try {
+        const rows = await selectAllGroupEvents(res.locals.groupId, res.locals.userId);
+
+        const events = rows.map((row: any) => ({
+            id: row.event_id,
+            name: row.event_name,
+            description: row.event_description,
+            date: row.date,
+            repetition: row.repetition,
+            seriesId: row.series_id,
+            myRsvp: row.my_rsvp
+        }));
+
+        res.status(200).json({success: true, response: events});
+    } catch (err: any) {
+        res.status(500).json({success: false, error: err.message});
+    }
+}
+
 export const getMyGroups = async (_: Request, res: Response) => {
     try {
         const userId = Number(res.locals.userId);
@@ -51,6 +71,21 @@ export const getMyGroups = async (_: Request, res: Response) => {
         });
     } catch (err: any) {
         res.status(500).json({success: false, error: err.message});
+    }
+}
+
+export const getEventCreatableGroups = async (_: Request, res: Response) => {
+    try {
+        const userId = res.locals.userId;
+
+        const groups = await selectEventCreatableGroups(userId);
+
+        return res.json({
+            success: true,
+            response: groups.map(mapDbGroupToGroup)
+        });
+    } catch (err: any) {
+        return res.status(500).json({ success: false, error: err.message });
     }
 }
 

@@ -39,7 +39,7 @@ interface DbGroup extends Group {
     my_rsvp: RsvpStatus;
 }
 
-interface GroupUser extends Omit<User, 'password' | 'email' | 'birthdate' | 'phone'> {
+interface GroupUser extends Omit<User, 'password' | 'email' | 'birthdate' | 'phone' | 'zipCode'> {
     role: Role;
     inviteStatus: InviteStatus;
     invitedByGroup: boolean;

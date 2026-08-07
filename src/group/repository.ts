@@ -9,30 +9,23 @@ const connection = require('../knexfile')[process.env.NODE_ENV || 'development']
 const database = knex(connection);
 
 export const selectGroup = async (groupId: number, isAdmin: boolean, userId: number) => {
+    const upcomingEvents = database('event')
+        .select('*')
+        .distinctOn('series_id')
+        .where('group_id', groupId)
+        .andWhere('date', '>=', DateTime.now().toISO())
+        .andWhere('date', '<=', DateTime.now().plus({ month: 6 }).toISO())
+        .orderBy('series_id', 'asc')
+        .orderBy('date', 'asc')
+        .limit(20)
+        .as('event');
+
     const query = database
         .table('group')
         .select('group.*', 'event.name as event_name', 'event.description as event_description', 'event.date', 'event.id as event_id', 'event.repetition', 'event.series_id',
             'group_user.role', 'group_user.user_id', 'group_user.invite_status', 'group_user.invited_by_group', 'user.username', 'user.first_name', 'user.last_name',
             'event_invitation.rsvp_status as my_rsvp')
-        .leftJoin('event', function () {
-            this.on('group.id', '=', 'event.group_id')
-                .andOn(database.raw(`(
-                    (event.date BETWEEN ? AND ?)
-                    OR
-                    (event.date BETWEEN ? AND ? AND EXISTS (
-                        SELECT 1 FROM event_invitation
-                        WHERE event_invitation.event_id = event.id
-                        AND event_invitation.user_id = ?
-                        AND event_invitation.rsvp_status = 1
-                    ))
-                )`, [
-                    DateTime.now().toISO(),
-                    DateTime.now().plus({ week: 2 }).toISO(),
-                    DateTime.now().toISO(),
-                    DateTime.now().plus({ week: 6 }).toISO(),
-                    userId
-                ]));
-        })
+        .leftJoin(upcomingEvents, 'group.id', 'event.group_id')
         .leftJoin('event_invitation', function() {
             this.on('event.id', '=', 'event_invitation.event_id')
                 .andOn('event_invitation.user_id', '=', database.raw('?', [userId]))
@@ -54,6 +47,30 @@ export const selectGroup = async (groupId: number, isAdmin: boolean, userId: num
     return query
         .orderBy('event.date', 'asc')
         .leftJoin('user', 'group_user.user_id', 'user.id');
+}
+
+export const selectAllGroupEvents = async (groupId: number, userId: number) => {
+    return database('event AS e')
+        .select(
+            'e.id as event_id',
+            'e.name as event_name',
+            'e.description as event_description',
+            'e.date',
+            'e.repetition',
+            'e.series_id',
+            'ei.rsvp_status as my_rsvp'
+        )
+        .distinctOn('e.series_id')
+        .leftJoin('event_invitation AS ei', function () {
+            this.on('e.id', '=', 'ei.event_id')
+                .andOn('ei.user_id', '=', database.raw('?', [userId]));
+        })
+        .where('e.group_id', groupId)
+        .andWhere('e.date', '>=', DateTime.now().toISO())
+        .andWhere('e.date', '<=', DateTime.now().plus({ year: 1 }).toISO())
+        .orderBy('e.series_id', 'asc')
+        .orderBy('e.date', 'asc')
+        .limit(500);
 }
 
 export const selectUserGroups = async (userId: number) => {
@@ -98,6 +115,17 @@ export const selectUserGroups = async (userId: number) => {
         `);
 }
 
+export const selectEventCreatableGroups = async (userId: number) => {
+    return database
+        .table('group')
+        .select('group.*')
+        .innerJoin('group_user', 'group.id', 'group_user.group_id')
+        .where('group_user.user_id', userId)
+        .andWhere('group_user.invite_status', InviteStatus.accepted)
+        .whereIn('group_user.role', [Role.creator, Role.admin, Role.owner])
+        .orderBy('group.name', 'asc');
+}
+
 export const selectAvailableGroups = async (searchString?: string, userId?: number) => {
     const query = database
         .table('group')
@@ -110,7 +138,7 @@ export const selectAvailableGroups = async (searchString?: string, userId?: numb
         })
         .leftJoin('group_user as gu_user', function () {
             this.on('group.id', '=', 'gu_user.group_id')
-                .on('gu_user.user_id', '=', database.raw('?', [userId]));
+                .on('gu_user.user_id', '=', database.raw('?', [String(userId)]));
         })
         .where(function () {
             this.whereNull('gu_user.user_id')
