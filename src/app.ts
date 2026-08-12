@@ -7,6 +7,7 @@ import groupRoutes from './group/routes';
 import eventRoutes from './event/routes';
 import businessRoutes from './business/routes';
 import billingRoutes from './billing/routes';
+import placesRoutes from './places/routes';
 import {startInvitationStatusCron} from "./business/cron";
 import {startBillingCron} from "./billing/cron";
 
@@ -36,6 +37,7 @@ app.use('/', authRoutes);
 app.use('/group', groupRoutes);
 app.use('/event', eventRoutes);
 app.use('/business', businessRoutes);
+app.use('/places', placesRoutes);
 
 startInvitationStatusCron();
 startBillingCron();

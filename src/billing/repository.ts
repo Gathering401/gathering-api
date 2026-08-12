@@ -9,7 +9,7 @@ import {
     UnbilledEventRow,
     UnsweptLedgerRow,
     BusinessInvoice,
-} from "./Billing";
+} from "./types";
 import {RsvpStatus} from "../common/enums/rsvpStatus";
 import {BusinessInvoiceStatus} from "../common/enums/businessInvoiceStatus";
 

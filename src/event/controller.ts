@@ -1,5 +1,5 @@
 import {Request, Response} from 'express';
-import {EventPost, mapDbEventsToPartialEvents, mapDbEventToEvent, mapDbInvitationsToInvitations, Rsvp} from "./Event";
+import {EventPost, mapDbEventsToPartialEvents, mapDbEventToEvent, mapDbInvitationsToInvitations, Rsvp} from "./types";
 import {getEventValidator, getUpdateEventValidator, getUpdateSeriesValidator} from "./validation";
 import {
     deleteSeriesEvent,
@@ -12,7 +12,7 @@ import {
     selectEvents, selectPendingInvitations
 } from "./repository";
 import {getUserActiveInvitations, setInvitationDeclined} from "./repository";
-import {mapDbActiveInvitationToActiveInvitation} from "../business/Business";
+import {mapDbActiveInvitationToActiveInvitation} from "../business/types";
 import {RsvpStatus} from "../common/enums/rsvpStatus";
 
 export const getEvent = async (req: Request, res: Response) => {

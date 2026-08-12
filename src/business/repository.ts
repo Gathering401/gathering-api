@@ -3,7 +3,7 @@ import {
     BusinessInvitation,
     mapBusinessInvitationToDbBusinessInvitation,
     mapDbBusinessInvitationToBusinessInvitation
-} from "./Business";
+} from "./types";
 import {BusinessInvitationStatus} from "../common/enums/businessInvitationStatus";
 import {getDateBy, Timeframe} from "../common/enums/timeframe";
 import {DateTime} from "luxon";

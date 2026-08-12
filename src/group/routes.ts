@@ -41,7 +41,7 @@ router.delete('/remove-member', isInGroup, isAdmin, isLowerRole, removeMember);
 router.delete('/leave', isInGroup, isNotOwner, leaveGroup);
 router.put('/change-role', isInGroup, isAdmin, isLowerRole, isNotHigherRole, changeRole);
 router.get('/my-groups', getMyGroups);
-router.get('/group/creatable', isAuthenticated, getEventCreatableGroups);
+router.get('/creatable', isAuthenticated, getEventCreatableGroups);
 router.get('/available-groups', getAvailableGroups);
 router.put('/notification-preference', isInGroup, updateNotificationPreference);
 

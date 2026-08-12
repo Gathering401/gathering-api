@@ -1,5 +1,5 @@
 import knex from 'knex';
-import {DbGroupPost, Group, mapGroupToDbGroup} from "./Group";
+import {DbGroupPost, Group, mapGroupToDbGroup} from "./types";
 import {Role} from "../common/enums/role";
 import {InviteStatus} from "../common/enums/inviteStatus";
 import {DateTime} from "luxon";
@@ -118,7 +118,7 @@ export const selectUserGroups = async (userId: number) => {
 export const selectEventCreatableGroups = async (userId: number) => {
     return database
         .table('group')
-        .select('group.*')
+        .select('group.id', 'group.name')
         .innerJoin('group_user', 'group.id', 'group_user.group_id')
         .where('group_user.user_id', userId)
         .andWhere('group_user.invite_status', InviteStatus.accepted)

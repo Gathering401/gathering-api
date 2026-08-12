@@ -11,7 +11,7 @@ import {
     updateBusinessInvoiceStatus,
     updateBusinessPaymentStatus,
 } from "./repository";
-import {ChargeLedgerEntry, RSVP_FEE_PERCENTAGE, UnsweptLedgerRow} from "./Billing";
+import {ChargeLedgerEntry, RSVP_FEE_PERCENTAGE, UnsweptLedgerRow} from "./types";
 import {createCampaignInvoiceItem, createAndFinalizeInvoice, verifyWebhookEvent} from "./stripe";
 import {BusinessInvoiceStatus} from "../common/enums/businessInvoiceStatus";
 import {BusinessPaymentStatus} from "../common/enums/businessPaymentStatus";

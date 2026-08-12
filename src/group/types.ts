@@ -1,5 +1,5 @@
-import {User} from "../auth/User";
-import {PartialEvent, Rsvp} from "../event/Event";
+import {User} from "../auth/types";
+import {PartialEvent, Rsvp} from "../event/types";
 import {InviteStatus} from "../common/enums/inviteStatus";
 import {Role} from "../common/enums/role";
 import _ from "lodash";

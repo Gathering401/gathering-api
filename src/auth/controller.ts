@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import {TokenUser, User} from './User';
+import {TokenUser, User} from './types';
 import {Request, Response} from 'express';
 import {
     postPasswordResetToken,

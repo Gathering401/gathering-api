@@ -1,7 +1,7 @@
 import knex from 'knex';
 
 const connection = require('../knexfile')[process.env.NODE_ENV || 'development'];
-import {mapUserToDb, User} from "./User";
+import {mapUserToDb, User} from "./types";
 import {sendPasswordResetEmail} from "../email";
 import crypto from 'crypto';
 import {encryptPassword} from "./controller";

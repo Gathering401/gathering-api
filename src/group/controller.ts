@@ -1,6 +1,6 @@
 import {Request, Response} from 'express';
 import {getGroupValidator} from "./validation";
-import {Group, mapDbGroupToGroup, mapGroupToDbGroup} from "./Group";
+import {Group, mapDbGroupToGroup, mapGroupToDbGroup} from "./types";
 import {
     deleteGroup, deleteGroupUser, getGroupUserBy, selectUserGroups, getUsersBy,
     postGroup,
@@ -82,7 +82,7 @@ export const getEventCreatableGroups = async (_: Request, res: Response) => {
 
         return res.json({
             success: true,
-            response: groups.map(mapDbGroupToGroup)
+            response: groups
         });
     } catch (err: any) {
         return res.status(500).json({ success: false, error: err.message });

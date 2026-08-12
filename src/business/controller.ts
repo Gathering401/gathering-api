@@ -22,11 +22,11 @@ import {
     Business, CampaignMatch, DbAnalytics,
     mapDbBusinessInvitationToBusinessInvitation,
     mapRequestBodyToBusinessInvitation, mapToAnalytics
-} from "./Business";
+} from "./types";
 import {sendPushNotification} from "../notifications";
 import {BusinessPaymentStatus} from "../common/enums/businessPaymentStatus";
 import {selectOpenInvoiceForBusiness} from "../billing/repository";
-import {mapBusinessInvoiceFromDb} from "../billing/Billing";
+import {mapBusinessInvoiceFromDb} from "../billing/types";
 import {createSetupCheckoutSession, createStripeCustomer} from "../billing/stripe";
 
 export const generateBusinessAccessToken = (businessId: number, contactEmail: string) =>

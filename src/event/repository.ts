@@ -1,5 +1,5 @@
 import knex from 'knex';
-import {EventPost, EventPutMulti, EventPutSingle, mapEventPostToDbEvent} from "./Event";
+import {EventPost, EventPutMulti, EventPutSingle, mapEventPostToDbEvent} from "./types";
 import {Role} from "../common/enums/role";
 import _ from "lodash";
 import {scheduleEventNotifications} from "../notifications";
