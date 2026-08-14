@@ -13,7 +13,6 @@ import {
 } from "./repository";
 import {getUserActiveInvitations, setInvitationDeclined} from "./repository";
 import {mapDbActiveInvitationToActiveInvitation} from "../business/types";
-import {RsvpStatus} from "../common/enums/rsvpStatus";
 
 export const getEvent = async (req: Request, res: Response) => {
     try {
