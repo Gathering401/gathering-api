@@ -2,11 +2,11 @@ import knex from 'knex';
 import {EventPost, EventPutMulti, EventPutSingle, mapEventPostToDbEvent} from "./types";
 import {Role} from "../common/enums/role";
 import _ from "lodash";
-import {scheduleEventNotifications} from "../notifications";
 import {onEventCreatedFromInvitation} from "../business/repository";
 import {BusinessInvitationResponse} from "../common/enums/businessInvitationResponse";
 import {RsvpStatus} from "../common/enums/rsvpStatus";
 import { DateTime } from 'luxon';
+import {sendNewEventNotification} from "../notifications";
 
 const connection = require('../knexfile')[process.env.NODE_ENV || 'development'];
 
@@ -79,10 +79,11 @@ export const selectEvents = async (userId: number, year: number, month: number) 
     return database
         .table('event as e')
         .select('e.id', 'e.name', 'e.description', 'e.date', 'e.group_id', 'g.name as group_name', 'ei.rsvp_status', 'e.series_id', 'e.repetition')
-        .leftJoin('event_invitation as ei', 'e.id', 'ei.event_id')
+        .leftJoin('event_invitation as ei', function () {
+            this.on('e.id', '=', 'ei.event_id')
+                .andOn('ei.user_id', '=', database.raw('?', [userId]));
+        })
         .leftJoin('group as g', 'e.group_id', 'g.id')
-        .where('ei.user_id', userId)
-        .andWhere('ei.rsvp_status', '<>', 3)
         .andWhere('e.date', '>=', startOfMonth)
         .andWhere('e.date', '<=', endOfMonth);
 }
@@ -139,9 +140,7 @@ export const postEvent = async (event: EventPost) => {
             rsvp_status: u.user_id == event.hostId ? 2 : 1,
         }))).flat());
 
-    for (const row of response) {
-        await scheduleEventNotifications(row.id);
-    }
+    await sendNewEventNotification(event.groupId, event.hostId, event.name);
 
     if (event.businessInvitationId) {
         await onEventCreatedFromInvitation(event.hostId, event.businessInvitationId);
@@ -164,14 +163,6 @@ export const putEvent = async (event: EventPutMulti | EventPutSingle, seriesId?:
     }
 
     await query;
-
-    const affected = seriesId
-        ? await database('event').select('id').where('series_id', seriesId)
-        : [{ id: (event as EventPutSingle).id }];
-
-    for (const row of affected) {
-        await scheduleEventNotifications(row.id);
-    }
 }
 
 export const deleteSingleEvent = async (eventId: number) => {
@@ -206,9 +197,25 @@ const deleteEventInvitations = async (eventIds: number[]) => {
 }
 
 export const putRsvp = async (eventId: number, userId: number, rsvp: RsvpStatus) => {
+    const current = await database
+        .table('event_invitation')
+        .select('rsvp_status')
+        .where('event_id', eventId)
+        .andWhere('user_id', userId)
+        .first();
+
+    const shouldEnableNotifications = current?.rsvp_status === RsvpStatus.pending
+        && (rsvp === RsvpStatus.accepted || rsvp === RsvpStatus.maybe);
+
+    const update: Record<string, unknown> = { rsvp_status: rsvp };
+
+    if (shouldEnableNotifications) {
+        update.notifications = true;
+    }
+
     await database
         .table('event_invitation')
-        .update('rsvp_status', rsvp)
+        .update(update)
         .where('event_id', eventId)
         .andWhere('user_id', userId);
 }
@@ -220,17 +227,32 @@ export const putRsvpForSeries = async (eventId: number, userId: number, rsvp: Rs
         .where('id', eventId)
         .first())?.series_id;
 
+    const seriesEventIds = () => database
+        .table('event')
+        .select('id')
+        .where('series_id', seriesId)
+        .andWhere('date', '>=', new Date());
+
+    const rowsToFlip = await database
+        .table('event_invitation')
+        .select('event_id')
+        .whereIn('event_id', seriesEventIds())
+        .andWhere('user_id', userId)
+        .andWhere('rsvp_status', RsvpStatus.pending);
+
     await database
         .table('event_invitation')
         .update('rsvp_status', rsvp)
-        .whereIn('event_id',
-            database
-                .table('event')
-                .select('id')
-                .where('series_id', seriesId)
-                .andWhere('date', '>=', new Date())
-        )
+        .whereIn('event_id', seriesEventIds())
         .andWhere('user_id', userId);
+
+    if ((rsvp === RsvpStatus.accepted || rsvp === RsvpStatus.maybe) && rowsToFlip.length) {
+        await database
+            .table('event_invitation')
+            .update('notifications', true)
+            .whereIn('event_id', rowsToFlip.map(r => r.event_id))
+            .andWhere('user_id', userId);
+    }
 }
 
 export const putNotifications = async (eventId: number, userId: number, notifications: boolean) => {

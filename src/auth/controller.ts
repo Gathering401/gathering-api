@@ -52,11 +52,22 @@ export const register = async (req: Request, res: Response) => {
 
         const [response] = await postUser(user);
 
-        const accessToken = generateAccessToken(user.username, response!.id!);
+        const accessToken = generateAccessToken(user.username, response.id);
+
+        const mappedUser = {
+            id: response.id,
+            username: response.username,
+            email: response.email,
+            firstName: response.first_name,
+            lastName: response.last_name,
+            birthdate: response.birthdate,
+            phone: response.phone,
+            zipCode: response.zip_code
+        }
 
         res.status(201).json({
             success: true,
-            response,
+            response: mappedUser,
             token: accessToken
         });
     } catch (err: any) {
@@ -85,11 +96,11 @@ export const login = async (req: Request, res: Response) => {
         phone: user.phone,
         zipCode: user.zip_code,
         expoPushToken: user.expo_push_token
-    };
+    }
 
     res.status(200).json({
         success: true,
-        user: _.omit(mappedUser, 'password'),
+        user: mappedUser,
         token
     });
 }

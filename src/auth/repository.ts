@@ -8,7 +8,7 @@ import {encryptPassword} from "./controller";
 
 const database = knex(connection);
 
-export const postUser = async (user: User): Promise<User[]> => {
+export const postUser = async (user: User) => {
     return database
         .table('user')
         .insert(mapUserToDb(user))

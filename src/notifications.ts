@@ -1,6 +1,8 @@
 import schedule from 'node-schedule';
 import { Repetition } from './common/enums/repetition';
 import knex from "knex";
+import {RsvpStatus} from "./common/enums/rsvpStatus";
+import {DateTime} from "luxon";
 
 const connection = require('../knexfile')[process.env.NODE_ENV || 'development'];
 
@@ -20,40 +22,59 @@ const scheduleNotification = (token: string, title: string, body: string, sendAt
     schedule.scheduleJob(sendAt, () => sendPushNotification(token, title, body));
 }
 
-export const scheduleEventNotifications = async (eventId: number) => {
-    const rows = await database('event_invitation as ei')
-        .join('event as e', 'e.id', 'ei.event_id')
-        .join('user as u', 'u.id', 'ei.user_id')
-        .join('group_user as gu', function() {
-            this.on('gu.group_id', '=', 'e.group_id')
-                .andOn('gu.user_id', '=', 'ei.user_id');
-        })
-        .select(
-            'u.expo_push_token',
-            'e.name',
-            'e.date',
-            'e.repetition'
-        )
-        .where('ei.event_id', eventId)
-        .where('ei.notifications', true)
-        .where('gu.allow_notifications', true)
+export const sendNewEventNotification = async (groupId: number, creatorId: number, eventName: string) => {
+    const rows = await database('group_user as gu')
+        .join('user as u', 'u.id', 'gu.user_id')
+        .select('u.expo_push_token')
+        .where('gu.group_id', groupId)
+        .andWhere('gu.allow_notifications', true)
+        .andWhere('gu.user_id', '<>', creatorId)
         .whereNotNull('u.expo_push_token');
 
     for (const row of rows) {
-        const eventDate = new Date(row.date);
-        const oneDayBefore = new Date(eventDate);
-        oneDayBefore.setDate(oneDayBefore.getDate() - 1);
+        await sendPushNotification(row.expo_push_token, 'New Event', `A new event, ${eventName}, was just created`);
+    }
+}
 
-        const oneWeekBefore = new Date(eventDate);
-        oneWeekBefore.setDate(oneWeekBefore.getDate() - 7);
+export const sendNightlyDigest = async () => {
+    const startOfTomorrow = DateTime.now().setZone('America/Chicago').plus({ days: 1 }).startOf('day').toJSDate();
+    const endOfTomorrow = DateTime.now().setZone('America/Chicago').plus({ days: 1 }).endOf('day').toJSDate();
 
-        const isWeeklyOrMonthly =
-            row.repetition === Repetition.weekly || row.repetition === Repetition.monthly;
+    const rows = await database('event_invitation as ei')
+        .join('event as e', 'e.id', 'ei.event_id')
+        .join('user as u', 'u.id', 'ei.user_id')
+        .select('u.id as user_id', 'u.first_name', 'u.expo_push_token', 'e.name', 'e.date')
+        .where('ei.notifications', true)
+        .whereIn('ei.rsvp_status', [RsvpStatus.accepted, RsvpStatus.maybe])
+        .andWhere('e.date', '>=', startOfTomorrow)
+        .andWhere('e.date', '<=', endOfTomorrow)
+        .whereNotNull('u.expo_push_token')
+        .orderBy('e.date', 'asc');
 
-        scheduleNotification(row.expo_push_token, row.name, 'Your event is tomorrow!', oneDayBefore);
-
-        if (!isWeeklyOrMonthly) {
-            scheduleNotification(row.expo_push_token, row.name, 'Your event is coming up next week!', oneWeekBefore);
+    const eventsByUser = rows.reduce<Record<number, typeof rows>>((acc, row) => {
+        if (!acc[row.user_id]) {
+            acc[row.user_id] = [];
         }
+        acc[row.user_id]!.push(row);
+        return acc;
+    }, {});
+
+    for (const userId of Object.keys(eventsByUser)) {
+        const userRows = eventsByUser[Number(userId)]!;
+        const names = userRows.map(r => r.name);
+        const named = names.slice(0, 2);
+        const remaining = names.length - named.length;
+
+        let eventList = named.join(', ');
+
+        if (remaining === 1) {
+            eventList += ', and 1 other';
+        } else if (remaining > 1) {
+            eventList += `, and ${remaining} others`;
+        }
+
+        const body = `Hi ${userRows[0].first_name}, ${eventList} tomorrow, tap here to view your schedule`;
+
+        await sendPushNotification(userRows[0].expo_push_token, 'Tomorrow\'s Events', body);
     }
 }
