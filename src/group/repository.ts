@@ -200,7 +200,8 @@ export const putGroup = async (group: Group) => {
 export const deleteGroup = async (id: number) => {
     await database
         .table('group')
-        .delete().where('id', id);
+        .delete()
+        .where('id', id);
 }
 
 export const updateOwner = async (groupId: number, newOwnerId: number, currentUserId: number) => {

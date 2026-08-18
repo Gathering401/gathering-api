@@ -1,6 +1,7 @@
 import {NextFunction, Request, Response} from "express";
 import {getGroupUserBy} from "../../group/repository";
 import {InviteStatus} from "../enums/inviteStatus";
+import {Role} from "../enums/role";
 
 export const isInGroup = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -12,7 +13,7 @@ export const isInGroup = async (req: Request, res: Response, next: NextFunction)
             return res.status(401).json({ success: false, message: "You do not have access to this group" });
         }
 
-        res.locals.role = Number(user.role);
+        res.locals.role = Number(user.role) as Role;
         res.locals.groupId = groupId;
 
         next();
