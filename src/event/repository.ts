@@ -7,6 +7,7 @@ import {BusinessInvitationResponse} from "../common/enums/businessInvitationResp
 import {RsvpStatus} from "../common/enums/rsvpStatus";
 import { DateTime } from 'luxon';
 import {sendNewEventNotification} from "../notifications";
+import {InviteStatus} from "../common/enums/inviteStatus";
 
 const connection = require('../knexfile')[process.env.NODE_ENV || 'development'];
 
@@ -84,6 +85,7 @@ export const selectEvents = async (userId: number, year: number, month: number) 
                 .andOn('ei.user_id', '=', database.raw('?', [userId]));
         })
         .leftJoin('group as g', 'e.group_id', 'g.id')
+        .whereNotNull('ei.id')
         .andWhere('e.date', '>=', startOfMonth)
         .andWhere('e.date', '<=', endOfMonth);
 }
@@ -130,7 +132,8 @@ export const postEvent = async (event: EventPost) => {
     const usersToInvite = await database
         .table('group_user')
         .select('user_id')
-        .where('group_id', event.groupId);
+        .where('group_id', event.groupId)
+        .andWhere('invite_status', InviteStatus.accepted);
 
     await database
         .table('event_invitation')
