@@ -1,28 +1,36 @@
 import express, {NextFunction, Request, Response} from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 require('dotenv').config();
 
 import authRoutes from './auth/routes';
 import groupRoutes from './group/routes';
 import eventRoutes from './event/routes';
-import businessRoutes from './business/routes';
-import billingRoutes from './billing/routes';
+// import businessRoutes from './business/routes';
+// import billingRoutes from './billing/routes';
 import placesRoutes from './places/routes';
 import {startInvitationStatusCron} from "./business/cron";
 import {startBillingCron} from "./billing/cron";
 
 const app = express();
 
-require('knex')({
-    client: 'pg',
-    connection: process.env.PG_CONNECTION_STRING,
-    searchPath: ['knex', 'public'],
+app.set('trust proxy', 1);
+app.use(helmet());
+app.use(cors({
+    origin: process.env.FRONTEND_URL
+}));
+
+const globalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 300,
+    standardHeaders: true,
+    legacyHeaders: false
 });
 
-app.set('trust proxy', 1);
-app.use(cors());
+app.use(globalLimiter);
 
-app.use('/billing', billingRoutes);
+// app.use('/billing', billingRoutes);
 
 app.use(express.json());
 
@@ -36,7 +44,7 @@ app.get('/status', (_, res) => {
 app.use('/', authRoutes);
 app.use('/group', groupRoutes);
 app.use('/event', eventRoutes);
-app.use('/business', businessRoutes);
+// app.use('/business', businessRoutes);
 app.use('/places', placesRoutes);
 
 startInvitationStatusCron();

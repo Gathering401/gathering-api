@@ -9,7 +9,8 @@ export const getAutocomplete = async (req: Request, res: Response) => {
 
         res.status(200).json(results);
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Something went wrong' });
     }
 }
 
@@ -21,6 +22,7 @@ export const getDetails = async (req: Request, res: Response) => {
 
         res.status(200).json(result);
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Something went wrong' });
     }
 }

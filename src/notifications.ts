@@ -3,6 +3,7 @@ import { Repetition } from './common/enums/repetition';
 import knex from "knex";
 import {RsvpStatus} from "./common/enums/rsvpStatus";
 import {DateTime} from "luxon";
+import {InviteStatus} from "./common/enums/inviteStatus";
 
 const connection = require('../knexfile')[process.env.NODE_ENV || 'development'];
 
@@ -17,22 +18,18 @@ export const sendPushNotification = async (token: string, title: string, body: s
     return await result.json();
 }
 
-const scheduleNotification = (token: string, title: string, body: string, sendAt: Date) => {
-    if (sendAt <= new Date()) return;
-    schedule.scheduleJob(sendAt, () => sendPushNotification(token, title, body));
-}
-
-export const sendNewEventNotification = async (groupId: number, creatorId: number, eventName: string) => {
+export const sendNewEventNotification = async (groupId: number, creatorId: number, eventName: string, eventId: number) => {
     const rows = await database('group_user as gu')
         .join('user as u', 'u.id', 'gu.user_id')
         .select('u.expo_push_token')
         .where('gu.group_id', groupId)
         .andWhere('gu.allow_notifications', true)
         .andWhere('gu.user_id', '<>', creatorId)
+        .andWhere('gu.invite_status', InviteStatus.accepted)
         .whereNotNull('u.expo_push_token');
 
     for (const row of rows) {
-        await sendPushNotification(row.expo_push_token, 'New Event', `A new event, ${eventName}, was just created`);
+        await sendPushNotification(row.expo_push_token, 'New Event', `A new event, ${eventName}, was just created`, { eventId, groupId });
     }
 }
 

@@ -71,38 +71,44 @@ export const register = async (req: Request, res: Response) => {
             token: accessToken
         });
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Something went wrong' });
     }
 }
 
 export const login = async (req: Request, res: Response) => {
-    const { username, password } = req.body;
-    const encrypted = encryptPassword(password);
-    const [user] = await getUser(username);
+    try {
+        const { username, password } = req.body;
+        const encrypted = encryptPassword(password);
+        const [user] = await getUser(username);
 
-    if (!user || user.password !== encrypted) {
-        return res.status(401).json({error: 'Invalid credentials'});
+        if (!user || user.password !== encrypted) {
+            return res.status(401).json({error: 'Invalid credentials'});
+        }
+
+        const token = generateAccessToken(username, user.id!);
+
+        const mappedUser = {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            firstName: user.first_name,
+            lastName: user.last_name,
+            birthdate: user.birthdate,
+            phone: user.phone,
+            zipCode: user.zip_code,
+            expoPushToken: user.expo_push_token
+        }
+
+        res.status(200).json({
+            success: true,
+            user: mappedUser,
+            token
+        });
+    } catch (err: any) {
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Something went wrong' });
     }
-
-    const token = generateAccessToken(username, user.id!);
-
-    const mappedUser = {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        firstName: user.first_name,
-        lastName: user.last_name,
-        birthdate: user.birthdate,
-        phone: user.phone,
-        zipCode: user.zip_code,
-        expoPushToken: user.expo_push_token
-    }
-
-    res.status(200).json({
-        success: true,
-        user: mappedUser,
-        token
-    });
 }
 
 export const update = async (req: Request, res: Response) => {
@@ -116,7 +122,8 @@ export const update = async (req: Request, res: Response) => {
             response
         });
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Something went wrong' });
     }
 }
 
@@ -130,7 +137,8 @@ export const removeUser = async (req: Request, res: Response) => {
             success: true
         });
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Something went wrong' });
     }
 }
 
@@ -148,7 +156,8 @@ export const getProfile = async (__: Request, res: Response) => {
             user: _.omit(user, 'password')
         });
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Something went wrong' });
     }
 }
 
@@ -161,7 +170,8 @@ export const updatePushToken = async (req: Request, res: Response) => {
 
         res.status(200).json({ success: true });
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Something went wrong' });
     }
 }
 
@@ -171,7 +181,8 @@ export const forgotPassword = async (req: Request, res: Response) => {
         await postPasswordResetToken(email);
         res.status(200).json({ success: true });
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Something went wrong' });
     }
 }
 
@@ -181,7 +192,8 @@ export const resetPassword = async (req: Request, res: Response) => {
         await postResetPassword(token, newPassword);
         res.status(200).json({ success: true });
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Something went wrong' });
     }
 }
 
@@ -192,6 +204,7 @@ export const changePassword = async (req: Request, res: Response) => {
         await putPassword(userId, currentPassword, newPassword);
         res.status(200).json({ success: true });
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Something went wrong' });
     }
 }

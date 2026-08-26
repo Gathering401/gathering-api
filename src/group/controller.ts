@@ -22,7 +22,7 @@ export const getGroup = async (req: Request, res: Response) => {
         const response = await selectGroup(groupId, [Role.admin, Role.owner].includes(user!.role), userId);
 
         if(!response) {
-            res.status(404).json({
+            return res.status(404).json({
                 success: false,
                 message: `Group ID ${groupId} not found`
             })
@@ -35,7 +35,8 @@ export const getGroup = async (req: Request, res: Response) => {
             allowNotifications: user.allow_notifications
         })
     } catch (err: any) {
-        res.status(500).json({success: false, error: err.message});
+        console.error(err);
+        res.status(500).json({success: false, error: 'Something went wrong'});
     }
 }
 
@@ -55,7 +56,8 @@ export const getAllGroupEvents = async (_: Request, res: Response) => {
 
         res.status(200).json({success: true, response: events});
     } catch (err: any) {
-        res.status(500).json({success: false, error: err.message});
+        console.error(err);
+        res.status(500).json({success: false, error: 'Something went wrong'});
     }
 }
 
@@ -70,7 +72,8 @@ export const getMyGroups = async (_: Request, res: Response) => {
             response
         });
     } catch (err: any) {
-        res.status(500).json({success: false, error: err.message});
+        console.error(err);
+        res.status(500).json({success: false, error: 'Something went wrong'});
     }
 }
 
@@ -85,7 +88,8 @@ export const getEventCreatableGroups = async (_: Request, res: Response) => {
             response: groups
         });
     } catch (err: any) {
-        return res.status(500).json({ success: false, error: err.message });
+        console.error(err);
+        return res.status(500).json({ success: false, error: 'Something went wrong' });
     }
 }
 
@@ -98,7 +102,8 @@ export const getAvailableGroups = async (req: Request, res: Response) => {
 
         res.status(200).json({ success: true, response });
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Something went wrong' });
     }
 }
 
@@ -122,7 +127,8 @@ export const createGroup = async (req: Request, res: Response) => {
             response
         });
     } catch (err: any) {
-        res.status(500).json({success: false, error: err.message});
+        console.error(err);
+        res.status(500).json({success: false, error: 'Something went wrong'});
     }
 }
 
@@ -145,7 +151,8 @@ export const updateGroup = async (req: Request, res: Response) => {
             response
         });
     } catch (err: any) {
-        res.status(500).json({success: false, error: err.message});
+        console.error(err);
+        res.status(500).json({success: false, error: 'Something went wrong'});
     }
 }
 
@@ -159,7 +166,8 @@ export const removeGroup = async (req: Request, res: Response) => {
             success: true
         });
     } catch (err: any) {
-        res.status(500).json({success: false, error: err.message});
+        console.error(err);
+        res.status(500).json({success: false, error: 'Something went wrong'});
     }
 }
 
@@ -174,7 +182,8 @@ export const changeOwner = async (req: Request, res: Response) => {
             success: true
         });
     } catch (err: any) {
-        res.status(500).json({success: false, error: err.message});
+        console.error(err);
+        res.status(500).json({success: false, error: 'Something went wrong'});
     }
 }
 
@@ -188,7 +197,8 @@ export const inviteUser = async (req: Request, res: Response) => {
             success: true,
         });
     } catch (err: any) {
-        res.status(500).json({success: false, error: err.message});
+        console.error(err);
+        res.status(500).json({success: false, error: 'Something went wrong'});
     }
 }
 
@@ -203,7 +213,8 @@ export const respondToInvite = async (req: Request, res: Response) => {
             success: true,
         });
     } catch (err: any) {
-        res.status(500).json({success: false, error: err.message});
+        console.error(err);
+        res.status(500).json({success: false, error: 'Something went wrong'});
     }
 }
 
@@ -218,7 +229,8 @@ export const requestToJoin = async (req: Request, res: Response) => {
             success: true
         });
     } catch (err: any) {
-        res.status(500).json({success: false, error: err.message});
+        console.error(err);
+        res.status(500).json({success: false, error: 'Something went wrong'});
     }
 }
 
@@ -232,7 +244,8 @@ export const respondToRequest = async (req: Request, res: Response) => {
             success: true,
         });
     } catch (err: any) {
-        res.status(500).json({success: false, error: err.message});
+        console.error(err);
+        res.status(500).json({success: false, error: 'Something went wrong'});
     }
 }
 
@@ -247,7 +260,8 @@ export const removeMember = async (req: Request, res: Response) => {
             success: true,
         });
     } catch (err: any) {
-        res.status(500).json({success: false, error: err.message});
+        console.error(err);
+        res.status(500).json({success: false, error: 'Something went wrong'});
     }
 }
 
@@ -261,7 +275,8 @@ export const leaveGroup = async (_: Request, res: Response) => {
             success: true,
         });
     } catch (err: any) {
-        res.status(500).json({success: false, error: err.message});
+        console.error(err);
+        res.status(500).json({success: false, error: 'Something went wrong'});
     }
 }
 
@@ -283,7 +298,8 @@ export const changeRole = async (req: Request, res: Response) => {
             success: true
         });
     } catch (err: any) {
-        res.status(500).json({success: false, error: err.message});
+        console.error(err);
+        res.status(500).json({success: false, error: 'Something went wrong'});
     }
 }
 
@@ -299,7 +315,8 @@ export const searchUsers = async (req: Request, res: Response) => {
             response: response ?? []
         });
     } catch (err: any) {
-        res.status(500).json({success: false, error: err.message});
+        console.error(err);
+        res.status(500).json({success: false, error: 'Something went wrong'});
     }
 }
 
@@ -314,6 +331,7 @@ export const updateNotificationPreference = async (req: Request, res: Response) 
             success: true,
         });
     } catch (err: any) {
-        res.status(500).json({success: false, error: err.message});
+        console.error(err);
+        res.status(500).json({success: false, error: 'Something went wrong'});
     }
 }

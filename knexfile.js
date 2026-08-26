@@ -7,17 +7,21 @@ module.exports = {
   development: {
     client: 'pg',
     connection: {
-      database: 'gathering',
-      user: 'postgres',
+      host: process.env.DB_HOST || 'localhost',
+      port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 5432,
+      database: process.env.DB_NAME || 'gathering',
+      user: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD.toString()
     }
   },
   production: {
-    client: 'postgresql',
+    client: 'pg',
     connection: {
-      database: 'my_db',
-      user:     'username',
-      password: 'password'
+      host: process.env.DB_HOST,
+      port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 5432,
+      database: process.env.DB_NAME,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD
     }
   }
 }

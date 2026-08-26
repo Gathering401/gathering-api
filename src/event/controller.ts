@@ -30,7 +30,8 @@ export const getEvent = async (req: Request, res: Response) => {
             response: mapDbEventToEvent(events, role, host, myRsvp, myNotifications, seriesDates)
         });
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Something went wrong' });
     }
 }
 
@@ -46,7 +47,8 @@ export const getEvents = async (req: Request, res: Response) => {
             response: mapDbEventsToPartialEvents(events)
         });
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Something went wrong' });
     }
 }
 
@@ -60,7 +62,8 @@ export const getPendingInvitations = async (_: Request, res: Response) => {
             response: mapDbInvitationsToInvitations(invitations)
         });
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Something went wrong' });
     }
 }
 
@@ -82,7 +85,8 @@ export const createEvent = async (req: Request, res: Response) => {
             response
         });
     } catch (err: any) {
-        res.status(500).json({success: false, error: err.message});
+        console.error(err);
+        res.status(500).json({success: false, error: 'Something went wrong'});
     }
 }
 
@@ -104,7 +108,8 @@ export const updateEvent = async (req: Request, res: Response) => {
             success: true
         });
     } catch (err: any) {
-        res.status(500).json({success: false, error: err.message});
+        console.error(err);
+        res.status(500).json({success: false, error: 'Something went wrong'});
     }
 }
 
@@ -119,11 +124,12 @@ export const cancelEvent = async (req: Request, res: Response) => {
             await deleteSeriesEvent(seriesId);
         }
 
-        res.status(204).json({
+        res.status(200).json({
             success: true
         });
     } catch (err: any) {
-        res.status(500).json({success: false, error: err.message});
+        console.error(err);
+        res.status(500).json({success: false, error: 'Something went wrong'});
     }
 }
 
@@ -142,7 +148,8 @@ export const changeRsvp = async (req: Request, res: Response) => {
 
         res.status(200).json({ success: true });
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Something went wrong' });
     }
 }
 
@@ -155,7 +162,8 @@ export const updateNotifications = async (req: Request, res: Response) => {
 
         res.status(200).json({ success: true });
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Something went wrong' });
     }
 }
 
@@ -167,7 +175,8 @@ export const declineInvitation = async (req: Request, res: Response) => {
 
         res.status(200).json({ success: true });
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Something went wrong' });
     }
 }
 
@@ -178,7 +187,8 @@ export const getActiveInvitations = async (_: Request, res: Response) => {
 
         res.status(200).json({ success: true, response: mapped });
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Something went wrong' });
     }
 }
 
@@ -194,6 +204,7 @@ export const getInvitationDetails = async (req: Request, res: Response) => {
 
         res.status(200).json({ success: true, response: mapDbActiveInvitationToActiveInvitation(invitation) });
     } catch (err: any) {
-        res.status(500).json({ success: false, error: err.message });
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Something went wrong' });
     }
 }

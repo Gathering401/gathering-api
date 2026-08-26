@@ -127,11 +127,12 @@ export const selectAnalytics = async (invitationIds: number[]) => {
         .leftJoin('event_invitation as i', function () {
             this.on('i.event_id', '=', 'e.id').andOn('i.rsvp_status', '=', database.raw(RsvpStatus.accepted));
         })
-        .select('r.as_push_notification', 'r.response', 'r.business_invitation_id')
+        .join('business_invitation as bi', 'bi.id', 'r.business_invitation_id')
+        .select('r.as_push_notification', 'r.response', 'r.business_invitation_id', 'bi.name')
         .count('r.id as count')
         .count('i.user_id AS rsvpsAccepted')
         .whereIn('r.business_invitation_id', invitationIds)
-        .groupBy('r.business_invitation_id', 'r.as_push_notification', 'r.response')
+        .groupBy('r.business_invitation_id', 'bi.name', 'r.as_push_notification', 'r.response')
         .orderBy(['r.business_invitation_id', 'r.as_push_notification', 'r.response']);
 }
 

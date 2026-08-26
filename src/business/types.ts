@@ -232,10 +232,12 @@ export const mapToAnalytics = (analytics: DbAnalytics[] | DbAnalytics): Analytic
         }
     }
 
-    return {
+    const response =  {
         id: analytics[0]!.business_invitation_id,
         name: analytics[0]!.name,
         pushNotificationsCreated,
         calendarInvitationsCreated
     }
+    console.log('response', response, analytics)
+    return response;
 }

@@ -31,14 +31,16 @@ export const selectUnbilledCompletedEvents = async (): Promise<UnbilledEventRow[
             'b.average_cost as average_cost',
             database('event_invitation as ei')
                 .count('*')
-                .where('ei.event_id', database.raw('event.id'))
+                .where('ei.event_id', database.raw('e.id'))
                 .andWhere('ei.rsvp_status', RsvpStatus.accepted)
                 .as('rsvp_count')
         );
 }
 
 export const insertChargeLedgerEntries = async (entries: ChargeLedgerEntry[]): Promise<void> => {
-    if (!entries.length) return;
+    if (!entries.length) {
+        return;
+    }
 
     await database
         .table('business_charge_ledger')

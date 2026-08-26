@@ -143,7 +143,7 @@ export const postEvent = async (event: EventPost) => {
             rsvp_status: u.user_id == event.hostId ? 2 : 1,
         }))).flat());
 
-    await sendNewEventNotification(event.groupId, event.hostId, event.name);
+    await sendNewEventNotification(event.groupId, event.hostId, event.name, response[0].id);
 
     if (event.businessInvitationId) {
         await onEventCreatedFromInvitation(event.hostId, event.businessInvitationId);

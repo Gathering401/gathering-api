@@ -171,6 +171,7 @@ export const getAnalytics = async (req: Request, res: Response) => {
         }
 
         const response = await selectAnalytics([Number(invitationId)]) as any as DbAnalytics[];
+        console.log('things', response);
 
         let previous: DbAnalytics[] = [];
         if(timeframe) {
@@ -179,8 +180,8 @@ export const getAnalytics = async (req: Request, res: Response) => {
         }
 
         const previousMapped = [];
-        for(let i = 0; i < previous.length; i+=2) {
-            previousMapped.push(previous.slice(i, i+2));
+        for(let i = 0; i < previous.length; i += 2) {
+            previousMapped.push(previous.slice(i, i + 2));
         }
 
         res.status(200).json({
