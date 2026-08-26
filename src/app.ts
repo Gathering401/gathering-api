@@ -1,5 +1,6 @@
 import express, {NextFunction, Request, Response} from 'express';
 import cors from 'cors';
+import path from 'path';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 require('dotenv').config();
@@ -33,6 +34,7 @@ app.use(globalLimiter);
 // app.use('/billing', billingRoutes);
 
 app.use(express.json());
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 app.get('/status', (_, res) => {
     res.json({

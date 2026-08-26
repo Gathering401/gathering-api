@@ -12,5 +12,6 @@ COPY package.json package-lock.json* ./
 RUN npm ci --omit=dev
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/knexfile.js ./knexfile.js
+COPY --from=build /app/public ./public
 EXPOSE 3000
 CMD ["node", "dist/app.js"]
