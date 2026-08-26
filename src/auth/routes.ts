@@ -8,7 +8,8 @@ import {
     getProfile,
     updatePushToken,
     forgotPassword,
-    resetPassword, changePassword
+    resetPassword, changePassword,
+    refresh, logout
 } from './controller';
 import {isCurrentUser, isAuthenticated} from "../common/middleware";
 
@@ -27,6 +28,8 @@ const authLimiter = rateLimit({
 
 router.post('/signup', authLimiter, register);
 router.post('/login', authLimiter, login);
+router.post('/refresh', refresh);
+router.post('/logout', logout);
 router.put('/user', isAuthenticated, isCurrentUser, update);
 router.delete('/user', isAuthenticated, isCurrentUser, removeUser);
 router.get('/profile', isAuthenticated, getProfile);

@@ -113,3 +113,23 @@ export const putPassword = async (userId: number, currentPassword: string, newPa
         .where({ id: userId })
         .update({ password: hash });
 }
+
+export const postRefreshToken = async (userId: number, tokenHash: string, expiresAt: Date) => {
+    await database('refresh_token').insert({
+        user_id: userId,
+        token_hash: tokenHash,
+        expires_at: expiresAt
+    });
+}
+
+export const getRefreshToken = async (tokenHash: string) => {
+    return database('refresh_token')
+        .where({ token_hash: tokenHash })
+        .first();
+}
+
+export const deleteRefreshToken = async (tokenHash: string) => {
+    await database('refresh_token')
+        .where({ token_hash: tokenHash })
+        .delete();
+}

@@ -9,17 +9,32 @@ import {
     getUserById,
     postUser,
     putPushToken,
-    putUser, putPassword, postResetPassword
+    putUser, putPassword, postResetPassword,
+    postRefreshToken, getRefreshToken, deleteRefreshToken
 } from "./repository";
 import {getUserValidator} from "./validation";
 import _ from "lodash";
 import {zipCodeExists} from "../business/repository";
 
+const REFRESH_TOKEN_EXPIRY_MS = 30 * 24 * 60 * 60 * 1000;
+
 export const encryptPassword = (password: string) =>
     crypto.createHash('sha256').update(password).digest('hex');
 
+const hashToken = (token: string) =>
+    crypto.createHash('sha256').update(token).digest('hex');
+
 export const generateAccessToken = (username: string, userId: number) =>
     jwt.sign({ username, userId }, process.env.HASH_SECRET as string, { expiresIn: '24h' });
+
+export const generateRefreshToken = async (userId: number) => {
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + REFRESH_TOKEN_EXPIRY_MS);
+
+    await postRefreshToken(userId, hashToken(token), expiresAt);
+
+    return token;
+}
 
 export const verifyAccessToken = (accessToken: string): TokenUser | null => {
     try {
@@ -78,7 +93,7 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
     try {
-        const { username, password } = req.body;
+        const { username, password, staySignedIn } = req.body;
         const encrypted = encryptPassword(password);
         const [user] = await getUser(username);
 
@@ -87,6 +102,7 @@ export const login = async (req: Request, res: Response) => {
         }
 
         const token = generateAccessToken(username, user.id!);
+        const refreshToken = staySignedIn ? await generateRefreshToken(user.id!) : undefined;
 
         const mappedUser = {
             id: user.id,
@@ -103,8 +119,61 @@ export const login = async (req: Request, res: Response) => {
         res.status(200).json({
             success: true,
             user: mappedUser,
-            token
+            token,
+            refreshToken
         });
+    } catch (err: any) {
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Something went wrong' });
+    }
+}
+
+export const refresh = async (req: Request, res: Response) => {
+    try {
+        const { refreshToken } = req.body;
+
+        if (!refreshToken) {
+            return res.status(401).json({ success: false, error: 'Missing refresh token' });
+        }
+
+        const tokenHash = hashToken(refreshToken);
+        const record = await getRefreshToken(tokenHash);
+
+        if (!record || new Date(record.expires_at) < new Date()) {
+            return res.status(401).json({ success: false, error: 'Invalid or expired refresh token' });
+        }
+
+        await deleteRefreshToken(tokenHash);
+
+        const [user] = await getUserById(record.user_id);
+
+        if (!user) {
+            return res.status(401).json({ success: false, error: 'Invalid or expired refresh token' });
+        }
+
+        const token = generateAccessToken(user.username, user.id!);
+        const newRefreshToken = await generateRefreshToken(user.id!);
+
+        res.status(200).json({
+            success: true,
+            token,
+            refreshToken: newRefreshToken
+        });
+    } catch (err: any) {
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Something went wrong' });
+    }
+}
+
+export const logout = async (req: Request, res: Response) => {
+    try {
+        const { refreshToken } = req.body;
+
+        if (refreshToken) {
+            await deleteRefreshToken(hashToken(refreshToken));
+        }
+
+        res.status(200).json({ success: true });
     } catch (err: any) {
         console.error(err);
         res.status(500).json({ success: false, error: 'Something went wrong' });
