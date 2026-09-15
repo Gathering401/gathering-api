@@ -171,7 +171,6 @@ export const getAnalytics = async (req: Request, res: Response) => {
         }
 
         const response = await selectAnalytics([Number(invitationId)]) as any as DbAnalytics[];
-        console.log('things', response);
 
         let previous: DbAnalytics[] = [];
         if(timeframe) {

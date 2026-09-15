@@ -9,7 +9,7 @@ import {
     putRsvp,
     putRsvpForSeries,
     selectEvent,
-    selectEvents, selectPendingInvitations
+    selectEvents, selectGroupAvailability, selectPendingInvitations
 } from "./repository";
 import {getUserActiveInvitations, setInvitationDeclined} from "./repository";
 import {mapDbActiveInvitationToActiveInvitation} from "../business/types";
@@ -204,6 +204,23 @@ export const getInvitationDetails = async (req: Request, res: Response) => {
 
         res.status(200).json({ success: true, response: mapDbActiveInvitationToActiveInvitation(invitation) });
     } catch (err: any) {
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Something went wrong' });
+    }
+}
+
+export const getGroupAvailability = async (req: Request, res: Response) => {
+    try {
+        const {groupId} = res.locals;
+        const {year, month} = req.query;
+
+        const availability = await selectGroupAvailability(Number(groupId), Number(year), Number(month));
+
+        res.status(200).json({
+            success: true,
+            response: availability
+        });
+    } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, error: 'Something went wrong' });
     }

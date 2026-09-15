@@ -13,6 +13,16 @@ const connection = require('../knexfile')[process.env.NODE_ENV || 'development']
 
 const database = knex(connection);
 
+interface AvailabilityInterval {
+    start: string;
+    end: string | null;
+    userId: number;
+}
+
+interface AvailabilityMap {
+    [date: string]: AvailabilityInterval[];
+}
+
 export const selectEvent = async (id: number, role: Role, userId: number) => {
     const query = database
         .table('event')
@@ -105,14 +115,15 @@ export const selectPendingInvitations = async (userId: number) => {
                     'g.name as group_name',
                     'e.repetition',
                     'e.description',
-                    'e.series_id'
+                    'e.series_id',
+                    database.raw("COALESCE(e.series_id::text, 'event-' || e.id::text) as dedupe_key")
                 )
                 .leftJoin('event as e', 'e.id', 'ei.event_id')
                 .leftJoin('group as g', 'e.group_id', 'g.id')
                 .where('ei.rsvp_status', 1)
                 .andWhere('ei.user_id', userId)
-                .distinctOn('e.series_id')
-                .orderBy('e.series_id')
+                .distinctOn('dedupe_key')
+                .orderBy('dedupe_key')
                 .orderBy('e.date', 'asc')
                 .as('deduped')
         )
@@ -313,4 +324,81 @@ export const getInvitationDetailForUser = async (userId: number, invitationId: n
             'r.response'
         )
         .first();
+}
+
+export const selectGroupAvailability = async (
+    groupId: number,
+    year: number,
+    month: number
+): Promise<AvailabilityMap> => {
+    const startOfMonth = DateTime.local(year, month, 1).startOf('month');
+    const endOfMonth = startOfMonth.endOf('month');
+
+    const rows = await database
+        .table('event as e')
+        .select('e.date', 'e.end_date', 'ei.user_id')
+        .join('event_invitation as ei', 'ei.event_id', 'e.id')
+        .join('group_user as gu', function () {
+            this.on('gu.group_id', '=', 'e.group_id').andOn('gu.user_id', '=', 'ei.user_id');
+        })
+        .where('e.group_id', groupId)
+        .andWhere('e.repetition', 1)
+        .andWhere('gu.invite_status', 2)
+        .whereIn('ei.rsvp_status', [2, 4])
+        .andWhere('e.date', '<=', endOfMonth.toJSDate())
+        .andWhere(database.raw('COALESCE(e.end_date, e.date) >= ?', [startOfMonth.toJSDate()]));
+
+    const availability: AvailabilityMap = {};
+
+    let cursor = startOfMonth;
+    while (cursor <= endOfMonth) {
+        availability[cursor.toFormat('yyyy-MM-dd')] = [];
+        cursor = cursor.plus({ days: 1 });
+    }
+
+    const toIso = (dt: DateTime) => dt.toISO({ suppressMilliseconds: true, includeOffset: false })!;
+
+    rows.forEach((row) => {
+        const eventStart = DateTime.fromJSDate(row.date);
+        const eventEnd = row.end_date ? DateTime.fromJSDate(row.end_date) : null;
+
+        if (!eventEnd) {
+            const dateKey = eventStart.toFormat('yyyy-MM-dd');
+            if (availability[dateKey]) {
+                availability[dateKey].push({
+                    start: toIso(eventStart),
+                    end: null,
+                    userId: row.user_id,
+                });
+            }
+            return;
+        }
+
+        const eventStartDay = eventStart.startOf('day');
+        const eventEndDay = eventEnd.startOf('day');
+
+        let day = eventStartDay < startOfMonth ? startOfMonth : eventStartDay;
+        const lastDay = eventEndDay > endOfMonth ? endOfMonth : eventEndDay;
+
+        while (day <= lastDay) {
+            const dateKey = day.toFormat('yyyy-MM-dd');
+            const isStartDay = day.hasSame(eventStartDay, 'day');
+            const isEndDay = day.hasSame(eventEndDay, 'day');
+
+            const start = isStartDay ? eventStart : day.startOf('day');
+            const end = isEndDay ? eventEnd : day.endOf('day');
+
+            if (availability[dateKey]) {
+                availability[dateKey].push({
+                    start: toIso(start),
+                    end: toIso(end),
+                    userId: row.user_id,
+                });
+            }
+
+            day = day.plus({ days: 1 });
+        }
+    });
+
+    return availability;
 }
