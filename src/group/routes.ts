@@ -2,18 +2,28 @@ import {Router} from 'express';
 import {
     changeOwner,
     changeRole,
-    createGroup, getAllGroupEvents, getAvailableGroups, getEventCreatableGroups, getGroup, getMyGroups,
-    inviteUser, leaveGroup,
+    createGroup,
+    getAllGroupEvents,
+    getAvailableGroups,
+    getEventCreatableGroups,
+    getGroup,
+    getMyGroups,
+    inviteUser,
+    leaveGroup,
     removeGroup,
     removeMember,
     requestToJoin,
-    respondToInvite, respondToRequest, searchUsers,
-    updateGroup, updateNotificationPreference
+    respondToInvite,
+    respondToRequest,
+    searchUsers,
+    updateGroup,
+    updateNotificationPreference
 } from './controller';
 import {
     isAdmin,
     isAuthenticated,
-    isInGroup, isLowerRole,
+    isInGroup,
+    isLowerRole,
     isNotHigherRole,
     isNotOwner,
     isNotPendingInvite,

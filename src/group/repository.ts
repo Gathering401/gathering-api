@@ -10,12 +10,12 @@ const database = knex(connection);
 
 export const selectGroup = async (groupId: number, isAdmin: boolean, userId: number) => {
     const upcomingEvents = database('event')
-        .select('*')
-        .distinctOn('series_id')
+        .select('*', database.raw(`COALESCE(series_id::text, 'event-' || id::text) as dedupe_key`))
+        .distinctOn('dedupe_key')
         .where('group_id', groupId)
         .andWhere('date', '>=', DateTime.now().toISO())
         .andWhere('date', '<=', DateTime.now().plus({ month: 6 }).toISO())
-        .orderBy('series_id', 'asc')
+        .orderBy('dedupe_key', 'asc')
         .orderBy('date', 'asc')
         .limit(20)
         .as('event');
@@ -58,9 +58,10 @@ export const selectAllGroupEvents = async (groupId: number, userId: number) => {
             'e.date',
             'e.repetition',
             'e.series_id',
-            'ei.rsvp_status as my_rsvp'
+            'ei.rsvp_status as my_rsvp',
+            database.raw(`COALESCE(e.series_id::text, 'event-' || e.id::text) as dedupe_key`)
         )
-        .distinctOn('e.series_id')
+        .distinctOn('dedupe_key')
         .leftJoin('event_invitation AS ei', function () {
             this.on('e.id', '=', 'ei.event_id')
                 .andOn('ei.user_id', '=', database.raw('?', [userId]));
@@ -68,7 +69,7 @@ export const selectAllGroupEvents = async (groupId: number, userId: number) => {
         .where('e.group_id', groupId)
         .andWhere('e.date', '>=', DateTime.now().toISO())
         .andWhere('e.date', '<=', DateTime.now().plus({ year: 1 }).toISO())
-        .orderBy('e.series_id', 'asc')
+        .orderBy('dedupe_key', 'asc')
         .orderBy('e.date', 'asc')
         .limit(500);
 }
