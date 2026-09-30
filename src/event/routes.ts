@@ -2,6 +2,7 @@ import {Router} from 'express';
 import {
     cancelEvent,
     changeRsvp,
+    clearNotification,
     createEvent,
     declineInvitation,
     getActiveInvitations,
@@ -9,12 +10,13 @@ import {
     getEvents,
     getGroupAvailability,
     getInvitationDetails,
+    getNotifications,
     getPendingInvitations,
+    putNotificationsRead,
     updateEvent,
     updateNotifications
 } from './controller';
-import {isAdminOrHost, isAuthenticated, isInGroup} from "../common/middleware";
-import {canCreate} from "../common/middleware/canCreate";
+import {canCreate, isAdminOrHost, isAuthenticated, isInGroup} from "../common/middleware";
 
 const router = Router();
 
@@ -32,5 +34,8 @@ router.get('/invitations', getActiveInvitations);
 router.put('/invitations/decline', declineInvitation);
 router.get('/invitations/:id', getInvitationDetails);
 router.get('/availability', isInGroup, canCreate, getGroupAvailability);
+router.get('/notification', getNotifications);
+router.put('/notification/read', putNotificationsRead);
+router.delete('/notification', clearNotification)
 
 export default router;

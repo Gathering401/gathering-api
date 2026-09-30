@@ -4,6 +4,7 @@ import knex from "knex";
 import {RsvpStatus} from "./common/enums/rsvpStatus";
 import {DateTime} from "luxon";
 import {InviteStatus} from "./common/enums/inviteStatus";
+import {insertNotification} from "./event/repository";
 
 const connection = require('../knexfile')[process.env.NODE_ENV || 'development'];
 
@@ -21,15 +22,18 @@ export const sendPushNotification = async (token: string, title: string, body: s
 export const sendNewEventNotification = async (groupId: number, creatorId: number, eventName: string, eventId: number) => {
     const rows = await database('group_user as gu')
         .join('user as u', 'u.id', 'gu.user_id')
-        .select('u.expo_push_token')
+        .select('u.id as user_id', 'u.expo_push_token')
         .where('gu.group_id', groupId)
         .andWhere('gu.allow_notifications', true)
         .andWhere('gu.user_id', '<>', creatorId)
-        .andWhere('gu.invite_status', InviteStatus.accepted)
-        .whereNotNull('u.expo_push_token');
+        .andWhere('gu.invite_status', InviteStatus.accepted);
 
     for (const row of rows) {
-        await sendPushNotification(row.expo_push_token, 'New Event', `A new event, ${eventName}, was just created`, { eventId, groupId });
+        await insertNotification(row.user_id, 'new_event', eventId, groupId);
+
+        if (row.expo_push_token) {
+            await sendPushNotification(row.expo_push_token, 'New Event', `A new event, ${eventName}, was just created`, { eventId, groupId });
+        }
     }
 }
 
@@ -40,13 +44,16 @@ export const sendNightlyDigest = async () => {
     const rows = await database('event_invitation as ei')
         .join('event as e', 'e.id', 'ei.event_id')
         .join('user as u', 'u.id', 'ei.user_id')
-        .select('u.id as user_id', 'u.first_name', 'u.expo_push_token', 'e.name', 'e.date')
+        .select('u.id as user_id', 'u.first_name', 'u.expo_push_token', 'e.id as event_id', 'e.name', 'e.date', 'e.group_id')
         .where('ei.notifications', true)
         .whereIn('ei.rsvp_status', [RsvpStatus.accepted, RsvpStatus.maybe])
         .andWhere('e.date', '>=', startOfTomorrow)
         .andWhere('e.date', '<=', endOfTomorrow)
-        .whereNotNull('u.expo_push_token')
         .orderBy('e.date', 'asc');
+
+    for (const row of rows) {
+        await insertNotification(row.user_id, 'reminder', row.event_id, row.group_id);
+    }
 
     const eventsByUser = rows.reduce<Record<number, typeof rows>>((acc, row) => {
         if (!acc[row.user_id]) {
@@ -58,6 +65,11 @@ export const sendNightlyDigest = async () => {
 
     for (const userId of Object.keys(eventsByUser)) {
         const userRows = eventsByUser[Number(userId)]!;
+
+        if (!userRows[0].expo_push_token) {
+            continue;
+        }
+
         const names = userRows.map(r => r.name);
         const named = names.slice(0, 2);
         const remaining = names.length - named.length;

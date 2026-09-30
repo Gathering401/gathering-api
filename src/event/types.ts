@@ -116,6 +116,43 @@ interface Invitation {
     seriesId: number;
 }
 
+export interface NotificationRow {
+    id: number;
+    user_id: number;
+    type_id: number;
+    type_name: string;
+    event_id: number;
+    event_name: string;
+    group_id: number | null;
+    group_name: string | null;
+    read_at: string | null;
+    created_at: string;
+}
+
+export interface Notification {
+    id: number;
+    userId: number;
+    type: string;
+    eventId: number;
+    eventName: string;
+    groupId: number | null;
+    groupName: string | null;
+    readAt: string | null;
+    createdAt: string;
+}
+
+export const mapNotification = (row: NotificationRow): Notification => ({
+    id: row.id,
+    userId: row.user_id,
+    type: row.type_name,
+    eventId: row.event_id,
+    eventName: row.event_name,
+    groupId: row.group_id,
+    groupName: row.group_name,
+    readAt: row.read_at,
+    createdAt: row.created_at,
+});
+
 export const mapEventPostToDbEvent = (event: EventPost, seriesId?: number): DbEventPost[] => event.dates.map((date: string) => ({
     name: event.name,
     description: event.description,

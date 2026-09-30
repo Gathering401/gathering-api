@@ -10,6 +10,7 @@ const ROLE = { MEMBER: 1, CREATOR: 2, ADMIN: 3, OWNER: 4 };
 const INVITE_STATUS = { PENDING: 1, ACCEPTED: 2, REJECTED_BY_GROUP: 3, REJECTED_BY_USER: 4 };
 const RSVP_STATUS = { PENDING: 1, ACCEPTED: 2, REJECTED: 3, MAYBE: 4 };
 const REPETITION = { NONE: 1, ANNUALLY: 2, MONTHLY: 3, WEEKLY: 4 };
+const NOTIFICATION_TYPE = { NEW_EVENT: 1, REMINDER: 2 };
 
 const encryptPassword = (password) =>
     crypto.createHash('sha256').update(password).digest('hex');
@@ -72,6 +73,11 @@ const daysFromNow = (offsetDays, hour = 18) => {
     date.setHours(hour, 0, 0, 0);
     return date;
 };
+
+const hoursAgo = (hours) => new Date(Date.now() - hours * 60 * 60 * 1000);
+
+const isAttending = (rsvpStatus) =>
+    rsvpStatus === RSVP_STATUS.ACCEPTED || rsvpStatus === RSVP_STATUS.MAYBE;
 
 const dateInMonth = (monthOffset, dayOfMonth, hour = 12) => {
     const date = new Date();
@@ -395,6 +401,186 @@ async function seedAvailabilityConflictEvents({ group, owner, memberOne, memberT
     console.log(`  Day 5 next month: expect a conflict for ${owner.username} and ${memberOne.username}, only visible after paginating forward one month`);
 }
 
+async function seedNotificationTestGroup(users) {
+    const [group] = await knex('group')
+        .insert({
+            name: 'Notification Test Group',
+            description: 'Deterministic group for verifying the in-app notification list end-to-end.',
+            public: true,
+        })
+        .returning(['id', 'name']);
+
+    const memberships = users.map((user, i) => ({
+        group_id: group.id,
+        user_id: user.id,
+        allow_notifications: true,
+        invited_by_group: i !== 0,
+        invite_status: INVITE_STATUS.ACCEPTED,
+        role: i === 0 ? ROLE.OWNER : ROLE.MEMBER,
+    }));
+
+    await knex('group_user').insert(memberships);
+
+    console.log(`Seeded notification test group "${group.name}" (id ${group.id}) with ${users.length} accepted members`);
+    return group;
+}
+
+async function seedNotificationTestEvents(group, users) {
+    const { ACCEPTED, MAYBE, PENDING } = RSVP_STATUS;
+
+    const eventDefs = [
+        {
+            kind: 'tomorrow',
+            name: 'Notif Test: Morning Coffee',
+            description: 'Deterministic event tomorrow morning for reminder and digest testing.',
+            date: daysFromNow(1, 9),
+            hostIndex: 0,
+            rsvps: [ACCEPTED, ACCEPTED, MAYBE, ACCEPTED, PENDING],
+        },
+        {
+            kind: 'tomorrow',
+            name: 'Notif Test: Lunch Walk',
+            description: 'Deterministic event tomorrow midday for reminder and digest testing.',
+            date: daysFromNow(1, 12),
+            hostIndex: 1,
+            rsvps: [ACCEPTED, ACCEPTED, ACCEPTED, MAYBE, ACCEPTED],
+        },
+        {
+            kind: 'tomorrow',
+            name: 'Notif Test: Evening Trivia',
+            description: 'Deterministic event tomorrow evening for reminder and digest testing.',
+            date: daysFromNow(1, 19),
+            hostIndex: 2,
+            rsvps: [MAYBE, ACCEPTED, ACCEPTED, PENDING, ACCEPTED],
+        },
+        {
+            kind: 'new',
+            name: 'Notif Test: Potluck Dinner',
+            description: 'Deterministic newly created event for new-event notification testing.',
+            date: daysFromNow(10, 18),
+            hostIndex: 3,
+            rsvps: [PENDING, PENDING, PENDING, ACCEPTED, PENDING],
+        },
+        {
+            kind: 'new',
+            name: 'Notif Test: Board Game Tournament',
+            description: 'Deterministic newly created event for new-event notification testing.',
+            date: daysFromNow(14, 14),
+            hostIndex: 4,
+            rsvps: [PENDING, PENDING, PENDING, PENDING, ACCEPTED],
+        },
+        {
+            kind: 'new',
+            name: 'Notif Test: Sunrise Run',
+            description: 'Deterministic newly created event for new-event notification testing.',
+            date: daysFromNow(21, 7),
+            hostIndex: 0,
+            rsvps: [ACCEPTED, PENDING, PENDING, PENDING, PENDING],
+        },
+        {
+            kind: 'past',
+            name: 'Notif Test: Past Dinner',
+            description: 'Deterministic past event backing the stale read reminder used to test the 30-day cleanup.',
+            date: daysFromNow(-31, 18),
+            hostIndex: 0,
+            rsvps: [ACCEPTED, ACCEPTED, ACCEPTED, ACCEPTED, ACCEPTED],
+        },
+    ];
+
+    const events = [];
+
+    for (const def of eventDefs) {
+        const [event] = await knex('event')
+            .insert({
+                name: def.name,
+                description: def.description,
+                location: randomItem(EVENT_LOCATIONS),
+                date: def.date,
+                end_date: null,
+                cost: 0,
+                series_id: null,
+                repetition: REPETITION.NONE,
+                group_id: group.id,
+                host_id: users[def.hostIndex].id,
+                business_invitation_id: null,
+            })
+            .returning(['id']);
+
+        await knex('event_invitation').insert(
+            users.map((user, i) => ({
+                event_id: event.id,
+                user_id: user.id,
+                rsvp_status: def.rsvps[i],
+                notifications: isAttending(def.rsvps[i]),
+            }))
+        );
+
+        events.push({ ...def, id: event.id });
+    }
+
+    console.log(`Seeded ${events.length} deterministic notification test events for group "${group.name}"`);
+    return events;
+}
+
+async function seedNotifications(group, users, events) {
+    const tomorrowEvents = events.filter((e) => e.kind === 'tomorrow');
+    const newEvents = events.filter((e) => e.kind === 'new');
+    const pastEvent = events.find((e) => e.kind === 'past');
+
+    const rows = [];
+
+    users.forEach((user, userIndex) => {
+        newEvents
+            .filter((event) => event.hostIndex !== userIndex)
+            .forEach((event, i) => {
+                const isUnread = i === 0;
+                rows.push({
+                    user_id: user.id,
+                    type_id: NOTIFICATION_TYPE.NEW_EVENT,
+                    event_id: event.id,
+                    group_id: group.id,
+                    read_at: isUnread ? null : hoursAgo(20 + i),
+                    created_at: hoursAgo(isUnread ? 5 : 30 + i * 6),
+                });
+            });
+
+        tomorrowEvents
+            .filter((event) => isAttending(event.rsvps[userIndex]))
+            .forEach((event, i) => {
+                rows.push({
+                    user_id: user.id,
+                    type_id: NOTIFICATION_TYPE.REMINDER,
+                    event_id: event.id,
+                    group_id: group.id,
+                    read_at: null,
+                    created_at: hoursAgo(1 + i),
+                });
+            });
+
+        rows.push({
+            user_id: user.id,
+            type_id: NOTIFICATION_TYPE.REMINDER,
+            event_id: pastEvent.id,
+            group_id: group.id,
+            read_at: hoursAgo(24 * 31),
+            created_at: hoursAgo(24 * 32),
+        });
+    });
+
+    await knex('notification').insert(rows);
+    console.log(`Seeded ${rows.length} notifications`);
+
+    const staleCutoff = hoursAgo(24 * 30);
+    users.forEach((user) => {
+        const userRows = rows.filter((r) => r.user_id === user.id);
+        const unreadNewEvents = userRows.filter((r) => r.type_id === NOTIFICATION_TYPE.NEW_EVENT && r.read_at === null).length;
+        const unreadReminders = userRows.filter((r) => r.type_id === NOTIFICATION_TYPE.REMINDER && r.read_at === null).length;
+        const recentlyRead = userRows.filter((r) => r.read_at !== null && r.read_at > staleCutoff).length;
+        console.log(`  ${user.username}: ${unreadNewEvents} unread new_event, ${unreadReminders} unread reminder, ${recentlyRead} recently read, 1 stale read reminder (should be gone after the first fetch)`);
+    });
+    console.log('  Nightly digest against tomorrow\'s events: the first three users each attend all three and should get two named events plus "1 other"; the last two attend two each and should get both named');
+}
+
 async function run() {
     console.log(`Seeding against NODE_ENV="${environment}" — make sure this is pointed at your local dev DB.`);
 
@@ -406,6 +592,10 @@ async function run() {
 
     const availabilityTestGroup = await seedAvailabilityTestGroup(users);
     await seedAvailabilityConflictEvents(availabilityTestGroup);
+
+    const notificationTestGroup = await seedNotificationTestGroup(users);
+    const notificationTestEvents = await seedNotificationTestEvents(notificationTestGroup, users);
+    await seedNotifications(notificationTestGroup, users, notificationTestEvents);
 
     console.log('Done.');
 }

@@ -23,6 +23,7 @@ export const autocompletePlaces = async (
     const data = await response.json();
 
     if (!data.suggestions) {
+        console.error('Places autocomplete returned no suggestions', response.status, JSON.stringify(data));
         return [];
     }
 

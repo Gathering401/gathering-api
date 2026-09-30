@@ -1,5 +1,13 @@
 import knex from 'knex';
-import {EventPost, EventPutMulti, EventPutSingle, mapEventPostToDbEvent} from "./types";
+import {
+    EventPost,
+    EventPutMulti,
+    EventPutSingle,
+    mapEventPostToDbEvent,
+    mapNotification,
+    Notification,
+    NotificationRow
+} from "./types";
 import {Role} from "../common/enums/role";
 import _ from "lodash";
 import {onEventCreatedFromInvitation} from "../business/repository";
@@ -401,4 +409,65 @@ export const selectGroupAvailability = async (
     });
 
     return availability;
+}
+
+export const insertNotification = async (
+    userId: number,
+    typeName: 'new_event' | 'reminder',
+    eventId: number,
+    groupId: number | null
+): Promise<void> => {
+    const type = await database('notification_type')
+        .select('id')
+        .where({ name: typeName })
+        .first();
+
+    await database('notification').insert({
+        user_id: userId,
+        type_id: type.id,
+        event_id: eventId,
+        group_id: groupId,
+    });
+}
+
+export const selectNotifications = async (userId: number): Promise<Notification[]> => {
+    await database('notification')
+        .where({ user_id: userId })
+        .whereNotNull('read_at')
+        .andWhere('read_at', '<', database.raw(`now() - interval '30 days'`))
+        .del();
+
+    const rows: NotificationRow[] = await database('notification as n')
+        .select(
+            'n.id',
+            'n.user_id',
+            'n.type_id',
+            'nt.name as type_name',
+            'n.event_id',
+            'e.name as event_name',
+            'n.group_id',
+            'g.name as group_name',
+            'n.read_at',
+            'n.created_at'
+        )
+        .join('notification_type as nt', 'nt.id', 'n.type_id')
+        .join('event as e', 'e.id', 'n.event_id')
+        .leftJoin('group as g', 'g.id', 'n.group_id')
+        .where('n.user_id', userId)
+        .orderBy('n.created_at', 'desc');
+
+    return rows.map(mapNotification);
+}
+
+export const markNotificationsRead = async (userId: number): Promise<void> => {
+    await database('notification')
+        .where({ user_id: userId })
+        .whereNull('read_at')
+        .update({ read_at: database.fn.now() });
+}
+
+export const deleteNotification = async (userId: number, notificationId: number): Promise<void> => {
+    await database('notification')
+        .where({ id: notificationId, user_id: userId })
+        .del();
 }

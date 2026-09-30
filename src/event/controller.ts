@@ -2,14 +2,15 @@ import {Request, Response} from 'express';
 import {EventPost, mapDbEventsToPartialEvents, mapDbEventToEvent, mapDbInvitationsToInvitations, Rsvp} from "./types";
 import {getEventValidator, getUpdateEventValidator, getUpdateSeriesValidator} from "./validation";
 import {
+    deleteNotification,
     deleteSeriesEvent,
-    deleteSingleEvent, getInvitationDetailForUser,
+    deleteSingleEvent, getInvitationDetailForUser, markNotificationsRead,
     postEvent,
     putEvent, putNotifications,
     putRsvp,
     putRsvpForSeries,
     selectEvent,
-    selectEvents, selectGroupAvailability, selectPendingInvitations
+    selectEvents, selectGroupAvailability, selectNotifications, selectPendingInvitations
 } from "./repository";
 import {getUserActiveInvitations, setInvitationDeclined} from "./repository";
 import {mapDbActiveInvitationToActiveInvitation} from "../business/types";
@@ -223,5 +224,46 @@ export const getGroupAvailability = async (req: Request, res: Response) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, error: 'Something went wrong' });
+    }
+}
+
+export const getNotifications = async (_: Request, res: Response) => {
+    try {
+        const { userId } = res.locals;
+
+        const notifications = await selectNotifications(userId);
+
+        res.status(200).json({ success: true, response: notifications });
+    } catch (err) {
+        res.status(500).json({ success: false, error: (err as Error).message });
+    }
+}
+
+export const putNotificationsRead = async (_: Request, res: Response) => {
+    try {
+        const { userId } = res.locals;
+
+        await markNotificationsRead(userId);
+
+        res.status(200).json({ success: true });
+    } catch (err) {
+        res.status(500).json({ success: false, error: (err as Error).message });
+    }
+}
+
+export const clearNotification = async (req: Request, res: Response) => {
+    try {
+        const { userId } = res.locals;
+        const notificationId = Number(req.query.id);
+
+        if (!notificationId) {
+            return res.status(400).json({ success: false, error: 'Invalid notification id' });
+        }
+
+        await deleteNotification(userId, notificationId);
+
+        return res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ success: false, error: (err as Error).message });
     }
 }

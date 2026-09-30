@@ -8,7 +8,7 @@ import {
     loginBusiness,
     signupBusiness
 } from './controller';
-import {isBusinessAuthenticated} from '../common/middleware/isBusinessAuthenticated';
+import {isBusinessAuthenticated} from '../common/middleware';
 
 const router = Router();
 
